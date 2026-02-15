@@ -13,7 +13,7 @@ const urlsToCache = [
   './js/auth.js',
   './js/bulk-generator.js',
   './js/app.js',
-  // Icônes PWA (toutes les tailles recommandées)
+  // Icônes PWA
   './icons/icon-72x72.png',
   './icons/icon-96x96.png',
   './icons/icon-128x128.png',
@@ -40,8 +40,8 @@ self.addEventListener('install', event => {
 
 // Interception des requêtes : stale-while-revalidate
 self.addEventListener('fetch', event => {
-  // Ignorer les requêtes non-GET et les requêtes vers d'autres origines
-  if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) {
+  // Ignorer les requêtes non-GET
+  if (event.request.method !== 'GET') {
     return;
   }
 
