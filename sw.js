@@ -1,27 +1,27 @@
 const CACHE_NAME = 'qrguardian-generator-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/css/all.min.css',
-  '/webfonts/fa-solid-900.woff2',
-  '/webfonts/fa-regular-400.woff2',
-  '/webfonts/fa-brands-400.woff2',
-  '/js/qrcode.min.js',
-  '/js/jspdf.umd.min.js',
-  '/js/database.js',
-  '/js/auth.js',
-  '/js/bulk-generator.js',
-  '/js/app.js',
+  './',
+  './index.html',
+  './manifest.json',
+  './css/all.min.css',
+  './webfonts/fa-solid-900.woff2',
+  './webfonts/fa-regular-400.woff2',
+  './webfonts/fa-brands-400.woff2',
+  './js/qrcode.min.js',
+  './js/jspdf.umd.min.js',
+  './js/database.js',
+  './js/auth.js',
+  './js/bulk-generator.js',
+  './js/app.js',
   // Icônes PWA (toutes les tailles recommandées)
-  '/icons/icon-72x72.png',
-  '/icons/icon-96x96.png',
-  '/icons/icon-128x128.png',
-  '/icons/icon-144x144.png',
-  '/icons/icon-152x152.png',
-  '/icons/icon-192x192.png',
-  '/icons/icon-384x384.png',
-  '/icons/icon-512x512.png'
+  './icons/icon-72x72.png',
+  './icons/icon-96x96.png',
+  './icons/icon-128x128.png',
+  './icons/icon-144x144.png',
+  './icons/icon-152x152.png',
+  './icons/icon-192x192.png',
+  './icons/icon-384x384.png',
+  './icons/icon-512x512.png'
 ];
 
 // Installation : mise en cache atomique
