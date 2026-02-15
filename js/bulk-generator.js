@@ -212,7 +212,7 @@ class BulkQRGenerator {
         }
 
         try {
-            await this.loadScript('js/jspdf.umd.min.js');
+            await this.loadScript('./js/jspdf.umd.min.js');
             if (window.jspdf?.jsPDF || typeof window.jsPDF === 'function') {
                 return true;
             }
