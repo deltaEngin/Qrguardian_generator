@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <!-- PWA – iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="QRGuardian Generator">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <!-- Manifeste PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <title>QRGuardian - Générateur Professionnel</title>
+    <link rel="stylesheet" href="css/all.min.css">
+    <style>
+        /* ===== VARIABLES ET RESET ===== (identique au terminal corrigé) */
+        :root {
+            --color-primary: #2563eb;
+            --color-primary-dark: #0f172a;
+            --color-primary-light: #60a5fa;
+            --color-secondary: #1e293b;
+            --color-secondary-dark: #0f172a;
+            --color-secondary-light: #334155;
+            --color-surface: #1e293b;
+            --color-surface-dark: #0f172a;
+            --color-surface-light: #334155;
+            --color-text: #f8fafc;
+            --color-text-secondary: #cbd5e1;
+            --color-text-muted: #94a3b8;
+            --color-border: #334155;
+            --color-border-light: #475569;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-danger: #ef4444;
+            --color-info: #3b82f6;
+            --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+            --gradient-surface: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.5);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --radius-full: 9999px;
+            --transition-normal: 300ms ease;
+        }
+
+        /* ===== THÈME CLAIR – FOND BLANC, TEXTES BLEU NUIT, ACCENTS BLEUS ===== */
+        .light-theme {
+            --color-primary: #2563eb;
+            --color-primary-dark: #ffffff;      /* Fond blanc pur */
+            --color-primary-light: #3b82f6;
+            --color-secondary: #f1f5f9;
+            --color-secondary-dark: #e2e8f0;
+            --color-secondary-light: #ffffff;
+            --color-surface: #ffffff;
+            --color-surface-dark: #f8fafc;
+            --color-surface-light: #f9fafb;
+            --color-text: #0f172a;              /* Bleu nuit pour les textes */
+            --color-text-secondary: #334155;
+            --color-text-muted: #64748b;
+            --color-border: #cbd5e1;
+            --color-border-light: #e2e8f0;
+            --color-success: #059669;
+            --color-warning: #d97706;
+            --color-danger: #dc2626;
+            --color-info: #2563eb;
+            --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            --gradient-surface: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        /* --- Surcharges spécifiques au thème clair --- */
+        .light-theme .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+        }
+        .light-theme .btn-primary:hover {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+        .light-theme .btn-secondary {
+            background: white;
+            color: #1e293b;
+            border: 1px solid #94a3b8;
+        }
+        .light-theme .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #64748b;
+        }
+        .light-theme .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .light-theme .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        .light-theme .theme-toggle, 
+        .light-theme .refresh-btn {
+            background: white;
+            border: 1px solid #cbd5e1;
+            color: #334155;
+        }
+        .light-theme .theme-toggle i.fa-sun {
+            color: #f59e0b;
+        }
+        .light-theme .theme-toggle i.fa-moon {
+            color: #475569;
+        }
+        .light-theme .logo-icon {
+            color: #2563eb;
+            background: none;
+            -webkit-background-clip: unset;
+            -webkit-text-fill-color: unset;
+        }
+        .light-theme .app-header,
+        .light-theme .bottom-nav {
+            background: white;
+            border-bottom-color: #e2e8f0;
+            border-top-color: #e2e8f0;
+        }
+        .light-theme .settings-card,
+        .light-theme .stat-card,
+        .light-theme .qr-preview-container,
+        .light-theme .bulk-section,
+        .light-theme .history-item,
+        .light-theme .data-size-indicator {
+            background: white;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .light-theme .code-box {
+            background: #f1f5f9;
+            color: #2563eb;
+            border: 1px solid #cbd5e1;
+        }
+        .light-theme .storage-bar {
+            background: #e2e8f0;
+        }
+        .light-theme .storage-fill {
+            background: linear-gradient(90deg, #2563eb, #3b82f6);
+        }
+        .light-theme .nav-btn {
+            color: #64748b;
+        }
+        .light-theme .nav-btn:hover {
+            background: rgba(37, 99, 235, 0.05);
+            color: #2563eb;
+        }
+        .light-theme .nav-btn.active {
+            color: #2563eb;
+            background: rgba(37, 99, 235, 0.1);
+        }
+        .light-theme .nav-btn.active::after {
+            background: #2563eb;
+        }
+        .light-theme .page-header {
+            border-bottom-color: #e2e8f0;
+        }
+        .light-theme .history-controls {
+            background: white;
+            border-color: #e2e8f0;
+        }
+        .light-theme .history-date {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        /* --- Reset et styles généraux --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--color-primary-dark);
+            color: var(--color-text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--color-primary-dark);
+        }
+        .app-header {
+            background: var(--gradient-surface);
+            border-bottom: 1px solid var(--color-border);
+            padding: 1rem 1.5rem;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-md);
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px; /* élargi pour dashboard */
+            margin: 0 auto;
+        }
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .logo-icon {
+            font-size: 2rem;
+            color: var(--color-primary-light);
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .app-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--color-text);
+        }
+        .app-subtitle {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+        }
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all var(--transition-normal);
+            text-decoration: none;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn:not(:disabled):hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            border: 1px solid rgba(59,130,246,0.3);
+        }
+        .btn-secondary {
+            background: var(--color-secondary);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, var(--color-success) 0%, #059669 100%);
+            color: white;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, var(--color-danger) 0%, #dc2626 100%);
+            color: white;
+        }
+        .btn-sm {
+            padding: 0.4rem 1rem;
+            font-size: 0.75rem;
+        }
+        .btn-icon {
+            padding: 0.5rem;
+            border-radius: var(--radius-full);
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+        .theme-toggle, .refresh-btn {
+            background: var(--color-surface);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+        }
+        .theme-toggle:hover, .refresh-btn:hover {
+            background: var(--color-secondary);
+            transform: rotate(15deg);
+            border-color: var(--color-primary-light);
+        }
+        /* Disposition principale avec sidebar */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 1.5rem 0 1.5rem 1.5rem; /* espace à gauche pour la sidebar */
+            gap: 1.5rem;
+        }
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 3rem 1.5rem 1.5rem 1.5rem; /* haut augmenté pour dégager le header */
+        }
+        /* Sidebar (navigation) – visible sur desktop uniquement quand authentifié */
+        .sidebar-nav {
+            width: 220px;
+            background: var(--gradient-surface);
+            border-right: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 1rem 0.5rem;
+            display: none; /* caché par défaut */
+            flex-direction: column;
+            gap: 0.5rem;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-md);
+            height: fit-content;
+            position: sticky;
+            top: 90px; /* en dessous du header */
+        }
+        body.authenticated .sidebar-nav {
+            display: flex !important; /* affiché quand authentifié */
+        }
+        .sidebar-nav .nav-btn {
+            width: 100%;
+            flex-direction: row;
+            justify-content: flex-start;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            color: var(--color-text-secondary);
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            font-size: 0.9rem;
+        }
+        .sidebar-nav .nav-btn:hover {
+            background: rgba(59,130,246,0.1);
+            color: var(--color-text);
+        }
+        .sidebar-nav .nav-btn.active {
+            background: rgba(59,130,246,0.15);
+            color: var(--color-primary-light);
+            position: relative;
+        }
+        .sidebar-nav .nav-btn.active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10%;
+            height: 80%;
+            width: 4px;
+            background: var(--color-primary-light);
+            border-radius: 0 var(--radius-full) var(--radius-full) 0;
+        }
+        .sidebar-nav .nav-icon {
+            font-size: 1.2rem;
+            margin-bottom: 0;
+        }
+        .sidebar-nav .nav-label {
+            font-size: 0.9rem;
+            text-transform: none;
+        }
+        /* Navigation bas – cachée sur desktop, visible sur mobile quand authentifié */
+        .bottom-nav {
+            background: var(--gradient-surface);
+            border-top: 1px solid var(--color-border);
+            display: none !important;
+            padding: 0.5rem;
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+        body.authenticated .bottom-nav {
+            display: flex !important; /* affiché sur mobile quand authentifié */
+        }
+        .bottom-nav .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: none;
+            border: none;
+            padding: 0.75rem 0.5rem;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            border-radius: var(--radius-md);
+            position: relative;
+        }
+        .bottom-nav .nav-btn:hover {
+            color: var(--color-text);
+            background: rgba(59,130,246,0.1);
+        }
+        .bottom-nav .nav-btn.active {
+            color: var(--color-primary-light);
+            background: rgba(59,130,246,0.15);
+        }
+        .bottom-nav .nav-btn.active::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 3px;
+            background: var(--color-primary-light);
+            border-radius: 0 0 2px 2px;
+        }
+        .bottom-nav .nav-icon { font-size: 1.25rem; margin-bottom: 0.25rem; }
+        .bottom-nav .nav-label { font-size: 0.625rem; font-weight: 600; text-transform: uppercase; }
+
+        /* Reste des styles inchangés */
+        .page { display: none; animation: pageFadeIn 0.4s ease-out; }
+        .page.active { display: block; }
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .page-header { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--color-border); }
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--color-text);
+            margin-bottom: 0.5rem;
+        }
+        .page-subtitle { color: var(--color-text-secondary); font-size: 0.875rem; }
+
+        /* ===== FORMULAIRE ===== */
+        .form-simple { max-width: 1000px; margin: 0 auto; }
+        .input-group { margin-bottom: 1.5rem; }
+        .input-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--color-text);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+        }
+        .input-field {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--color-surface);
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-md);
+            color: var(--color-text);
+            font-size: 1rem;
+            transition: all var(--transition-normal);
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--color-primary-light);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        .input-hint {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+        }
+        .char-counter {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .char-progress {
+            flex: 1;
+            height: 4px;
+            background: var(--color-border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .char-fill {
+            height: 100%;
+            background: var(--color-success);
+            border-radius: 2px;
+            transition: width var(--transition-normal);
+        }
+        .char-fill.warning { background: var(--color-warning); }
+        .char-fill.danger { background: var(--color-danger); }
+        .char-count { font-weight: 600; min-width: 3rem; text-align: right; }
+
+        /* ===== INDICATEUR TAILLE ===== */
+        .data-size-indicator {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border: 1px solid var(--color-border);
+        }
+        .size-indicator { display: flex; align-items: center; gap: 1rem; }
+        .size-info { flex: 1; }
+        .size-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; }
+        .size-bar {
+            height: 8px;
+            background: var(--color-border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        .size-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 4px;
+            transition: width var(--transition-normal);
+        }
+        .size-message {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* ===== APERÇU QR ===== */
+        .qr-preview-container {
+            background: var(--color-surface);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+        .qr-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .qr-preview-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .security-code-display {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            background: rgba(30,58,138,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+        }
+        .qr-code-display {
+            display: inline-block;
+            padding: 1.5rem;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            margin: 1rem 0;
+        }
+        .qr-placeholder {
+            padding: 3rem 2rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: var(--radius-lg);
+            border: 2px dashed var(--color-border);
+            color: var(--color-text-secondary);
+        }
+        .qr-placeholder i { font-size: 4rem; margin-bottom: 1rem; color: var(--color-border); }
+        .qr-info { margin-top: 1.5rem; font-size: 0.875rem; color: var(--color-text-secondary); }
+        .qr-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(30,41,59,0.5);
+            border-radius: var(--radius-md);
+        }
+        .qr-info-item { text-align: center; }
+        .qr-info-label { display: block; font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.25rem; }
+        .qr-info-value { font-weight: 600; color: var(--color-text); word-break: break-word; }
+
+        /* ===== GÉNÉRATION EN LOT ===== */
+        .bulk-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--color-surface);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--color-border);
+        }
+        .bulk-section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .bulk-section-header i { color: var(--color-primary-light); font-size: 1.5rem; }
+        .bulk-quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .bulk-quantity-slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--color-border);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .bulk-quantity-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--color-primary-light);
+            cursor: pointer;
+        }
+        .bulk-quantity-input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .bulk-quantity-input {
+            width: 4rem;
+            text-align: center;
+            padding: 0.5rem;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            color: var(--color-text);
+        }
+        .bulk-quantity-btn {
+            width: 2rem;
+            height: 2rem;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--color-border);
+            background: var(--color-secondary);
+            color: var(--color-text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bulk-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .bulk-stat-card {
+            text-align: center;
+            padding: 1rem;
+            background: var(--color-secondary);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+        }
+        .bulk-stat-card i { font-size: 2rem; color: var(--color-primary-light); margin-bottom: 0.5rem; }
+        .bulk-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .bulk-actions .btn { flex: 1; min-width: 150px; }
+        .bulk-preview-container { display: none; margin-top: 2rem; }
+        .bulk-progress { margin: 1rem 0; }
+        .bulk-progress-bar {
+            height: 8px;
+            background: var(--color-border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        .bulk-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            border-radius: 4px;
+            transition: width var(--transition-normal);
+        }
+        .bulk-info-panel {
+            background: var(--color-secondary);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ===== PARAMÈTRES ===== */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px,1fr));
+            gap: 1.5rem;
+        }
+        .settings-card {
+            background: var(--color-surface);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-normal);
+        }
+        .settings-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--color-primary-light);
+        }
+        .settings-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .settings-card-header i {
+            font-size: 1.5rem;
+            color: var(--color-primary-light);
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .settings-card-header h3 { font-size: 1.25rem; font-weight: 600; }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--color-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: 0.75rem;
+        }
+        .stat-item i { font-size: 1.25rem; color: var(--color-primary-light); }
+        .storage-bar {
+            height: 8px;
+            background: var(--color-border);
+            border-radius: 4px;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+        }
+        .storage-fill {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 4px;
+            transition: width var(--transition-normal);
+        }
+        .storage-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+        }
+
+        /* ===== CONNEXION ===== */
+        .connection-qr-container {
+            background: var(--color-surface);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin: 1rem 0;
+            border: 2px solid var(--color-primary-light);
+            text-align: center;
+        }
+        .connection-qr-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .connection-qr-header i { font-size: 1.5rem; color: var(--color-primary-light); }
+        .connection-qr-code {
+            display: inline-block;
+            padding: 1rem;
+            background: white;
+            border-radius: var(--radius-lg);
+            margin: 1rem 0;
+        }
+        .connection-instructions {
+            background: rgba(30,58,138,0.1);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border: 1px solid rgba(59,130,246,0.2);
+            text-align: left;
+        }
+        .connection-instructions h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--color-primary-light);
+            margin-bottom: 0.75rem;
+        }
+        .connection-instructions ol {
+            margin-left: 1.5rem;
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        .device-status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--color-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+        }
+        .device-status i { font-size: 1.25rem; color: var(--color-success); }
+        .connection-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .connection-actions .btn { flex: 1; }
+
+        /* ===== NOTIFICATIONS ===== */
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: var(--color-surface);
+            border-left: 4px solid var(--color-info);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            max-width: 350px;
+            box-shadow: var(--shadow-xl);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform var(--transition-normal);
+            border: 1px solid var(--color-border);
+        }
+        .notification.show { transform: translateX(0); }
+        .notification.success { border-left-color: var(--color-success); }
+        .notification.error { border-left-color: var(--color-danger); }
+        .notification.warning { border-left-color: var(--color-warning); }
+        .notification-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .notification-header i { font-size: 1.25rem; }
+        .notification-header h4 { font-size: 0.875rem; font-weight: 600; }
+        .notification p { font-size: 0.75rem; color: var(--color-text-secondary); }
+
+        /* ===== PAGE LOGIN ===== */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            padding: 1rem;
+        }
+        .login-card {
+            background: var(--color-surface);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem 2rem;
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-lg);
+            max-width: 450px;
+            width: 100%;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-logo {
+            font-size: 3rem;
+            color: var(--color-primary-light);
+            margin-bottom: 0.5rem;
+        }
+        .login-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--color-text);
+        }
+        .login-subtitle {
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+        }
+        .login-form h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: var(--color-text);
+        }
+        .pin-container {
+            margin-bottom: 1.5rem;
+        }
+        .pin-container label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+        }
+        .pin-inputs {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+        .pin-digit {
+            width: 3.5rem;
+            height: 3.5rem;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: var(--color-secondary);
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-md);
+            color: var(--color-text);
+            transition: all var(--transition-normal);
+        }
+        .pin-digit:focus {
+            border-color: var(--color-primary-light);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+            outline: none;
+        }
+        .toggle-form {
+            margin-top: 1.5rem;
+            text-align: center;
+            color: var(--color-text-secondary);
+        }
+        .toggle-form a {
+            color: var(--color-primary-light);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .toggle-form a:hover {
+            text-decoration: underline;
+        }
+        /* Style pour le code de secours masqué */
+        .backup-code-container {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(59,130,246,0.1);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(59,130,246,0.2);
+        }
+        .backup-code-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--color-primary-light);
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .backup-code-field {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .backup-code-input {
+            flex: 1;
+            background: var(--color-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: 0.5rem 1rem;
+            color: var(--color-text);
+            font-family: monospace;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            -webkit-text-security: disc;
+            text-security: disc;
+        }
+        .backup-code-input:focus {
+            outline: none;
+            border-color: var(--color-primary-light);
+        }
+        .backup-copy-btn {
+            padding: 0.5rem 1rem;
+            background: var(--color-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            color: var(--color-text);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+        }
+        .backup-copy-btn:hover {
+            background: var(--color-primary-light);
+            color: white;
+        }
+
+        /* Ajustement responsive pour les PIN */
+        @media (max-width: 480px) {
+            .pin-digit {
+                width: 2.8rem;
+                height: 2.8rem;
+                font-size: 1.5rem;
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (min-width: 992px) {
+            /* Sur desktop, la bottom-nav reste cachée (gérée par authenticated) */
+            body.authenticated .bottom-nav {
+                display: none !important;
+            }
+        }
+        @media (max-width: 991px) {
+            /* Sur mobile, on cache la sidebar même si authentifié */
+            body.authenticated .sidebar-nav,
+            .sidebar-nav {
+                display: none !important;
+            }
+            .main-layout {
+                padding: 0 1rem;
+            }
+            .main-content {
+                padding: 2.5rem 1rem 1rem 1rem; /* haut adapté mobile */
+            }
+        }
+
+        /* ===== MODAL DE VÉRIFICATION PIN POUR PARAMÈTRES ===== */
+        .pin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        .pin-modal.show {
+            display: flex;
+        }
+        .pin-modal-content {
+            background: var(--color-surface);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-lg);
+        }
+        .pin-modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .pin-modal-header h3 {
+            font-size: 1.5rem;
+            color: var(--color-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .pin-modal-header i {
+            color: var(--color-primary-light);
+        }
+        .pin-modal-header p {
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        .pin-modal .pin-inputs {
+            margin-bottom: 1.5rem;
+        }
+        .pin-modal-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        .pin-modal-actions .btn {
+            flex: 1;
+        }
+        .pin-modal-error {
+            color: var(--color-danger);
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 1rem;
+            display: none;
+        }
+        .pin-modal-error.show {
+            display: block;
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-container">
+                    <i class="fas fa-shield-alt logo-icon"></i>
+                    <div class="logo-text">
+                        <h1 class="app-title">QRGuardian</h1>
+                        <span class="app-subtitle">Générateur Professionnel</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="refreshBtn" class="refresh-btn" aria-label="Rafraîchir" title="Réinitialiser">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button id="themeToggle" class="theme-toggle" aria-label="Changer de thème">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Layout principal avec sidebar et contenu -->
+        <div class="main-layout">
+            <!-- Sidebar (visible sur desktop après authentification) -->
+            <nav class="sidebar-nav" id="sidebarNav">
+                <button class="nav-btn active" data-page="generatePage">
+                    <div class="nav-icon"><i class="fas fa-qrcode"></i></div>
+                    <span class="nav-label">Générer</span>
+                </button>
+                <button class="nav-btn" data-page="settingsPage">
+                    <div class="nav-icon"><i class="fas fa-cog"></i></div>
+                    <span class="nav-label">Paramètres</span>
+                </button>
+            </nav>
+
+            <!-- Contenu principal -->
+            <main class="main-content">
+                <!-- PAGE LOGIN / SIGNUP (s'affiche en premier si non authentifié) -->
+                <section class="page active" id="loginPage">
+                    <div class="login-container">
+                        <div class="login-card">
+                            <div class="login-header">
+                                <i class="fas fa-shield-alt login-logo"></i>
+                                <h2>QRGuardian Generator</h2>
+                                <p class="login-subtitle">Accès sécurisé</p>
+                            </div>
+
+                            <!-- Formulaire de connexion (par défaut) -->
+                            <div id="loginForm" class="login-form">
+                                <h3><i class="fas fa-lock"></i> Connexion</h3>
+                                <div class="pin-container">
+                                    <label>Code PIN à 4 chiffres</label>
+                                    <div class="pin-inputs">
+                                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]" autofocus>
+                                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
+                                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
+                                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary" id="loginBtn">Se connecter</button>
+                                <p class="toggle-form">
+                                    Pas encore de compte ?
+                                    <a href="#" id="showSignupLink">Créer un compte</a>
+                                </p>
+                                <!-- Code de secours – affiché masqué, copiable -->
+                                <div class="backup-code-container" id="backupCodeContainer" style="display: none;">
+                                    <div class="backup-code-header">
+                                        <i class="fas fa-key"></i>
+                                        <span>Code de secours (conserve-le précieusement)</span>
+                                    </div>
+                                    <div class="backup-code-field">
+                                        <input type="text" id="backupCodeInput" class="backup-code-input" readonly value="••••">
+                                        <button id="copyBackupCodeBtn" class="backup-copy-btn" title="Copier le code">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Formulaire d'inscription (caché par défaut) -->
+                            <div id="signupForm" class="login-form" style="display: none;">
+                                <h3><i class="fas fa-user-plus"></i> Inscription</h3>
+                                <div class="input-group">
+                                    <label for="signupName">Nom complet</label>
+                                    <input type="text" id="signupName" class="input-field" placeholder="Ex: Jean Dupont" required>
+                                </div>
+                                <div class="pin-container">
+                                    <label>Code PIN (4 chiffres)</label>
+                                    <div class="pin-inputs">
+                                        <input type="password" maxlength="1" class="pin-digit" id="pin1" inputmode="numeric" pattern="[0-9]">
+                                        <input type="password" maxlength="1" class="pin-digit" id="pin2" inputmode="numeric" pattern="[0-9]">
+                                        <input type="password" maxlength="1" class="pin-digit" id="pin3" inputmode="numeric" pattern="[0-9]">
+                                        <input type="password" maxlength="1" class="pin-digit" id="pin4" inputmode="numeric" pattern="[0-9]">
+                                    </div>
+                                </div>
+                                <div class="pin-container">
+                                    <label>Confirmer le code PIN</label>
+                                    <div class="pin-inputs">
+                                        <input type="password" maxlength="1" class="pin-digit" id="confirmPin1" inputmode="numeric" pattern="[0-9]">
+                                        <input type="password" maxlength="1" class="pin-digit" id="confirmPin2" inputmode="numeric" pattern="[0-9]">
+                                        <input type="password" maxlength="1" class="pin-digit" id="confirmPin3" inputmode="numeric" pattern="[0-9]">
+                                        <input type="password" maxlength="1" class="pin-digit" id="confirmPin4" inputmode="numeric" pattern="[0-9]">
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary" id="signupBtn">S'inscrire</button>
+                                <p class="toggle-form">
+                                    Déjà un compte ?
+                                    <a href="#" id="showLoginLink">Se connecter</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PAGE GÉNÉRER -->
+                <section class="page" id="generatePage">
+                    <div class="page-header">
+                        <h2 class="page-title"><i class="fas fa-qrcode"></i> Générer QR Code</h2>
+                        <p class="page-subtitle">Créez un QR code sécurisé avec code secret unique</p>
+                    </div>
+                    <div class="form-simple">
+                        <!-- Grille pour les champs du formulaire (desktop) -->
+                        <div class="form-grid">
+                            <!-- Nom événement -->
+                            <div class="input-group">
+                                <label for="eventName" class="input-label"><i class="fas fa-calendar-alt"></i> Nom de l'événement *</label>
+                                <input type="text" id="eventName" class="input-field" placeholder="Ex: Concert Rock 2024" maxlength="80" required>
+                                <div class="input-hint">
+                                    <span>Requis • Max 80</span>
+                                    <div class="char-counter">
+                                        <div class="char-progress"><div class="char-fill" id="nameCharFill"></div></div>
+                                        <span class="char-count"><span id="nameCharCount">0</span>/80</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Lieu -->
+                            <div class="input-group">
+                                <label for="eventLocation" class="input-label"><i class="fas fa-map-marker-alt"></i> Lieu *</label>
+                                <input type="text" id="eventLocation" class="input-field" placeholder="Ex: Stade de France, Paris" maxlength="80" required>
+                                <div class="input-hint">
+                                    <span>Requis • Max 80</span>
+                                    <div class="char-counter">
+                                        <div class="char-progress"><div class="char-fill" id="locationCharFill"></div></div>
+                                        <span class="char-count"><span id="locationCharCount">0</span>/80</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Prix (prend toute la largeur) -->
+                            <div class="input-group">
+                                <label for="eventPrice" class="input-label"><i class="fas fa-tag"></i> Prix</label>
+                                <input type="text" id="eventPrice" class="input-field" placeholder="Ex: Gratuit, 50€" maxlength="30">
+                                <div class="input-hint">
+                                    <span>Optionnel • Max 30</span>
+                                    <div class="char-counter">
+                                        <div class="char-progress"><div class="char-fill" id="priceCharFill"></div></div>
+                                        <span class="char-count"><span id="priceCharCount">0</span>/30</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Date d'expiration -->
+                            <div class="input-group">
+                                <label for="eventExpiry" class="input-label"><i class="fas fa-calendar-times"></i> Date d'expiration</label>
+                                <input type="date" id="eventExpiry" class="input-field" min="">
+                                <div class="input-hint">
+                                    <span>Optionnel • Après cette date, le QR code sera invalide</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Indicateur taille et Aperçu QR côte à côte sur desktop -->
+                        <div class="qr-row">
+                            <!-- Indicateur taille -->
+                            <div class="data-size-indicator">
+                                <div class="size-indicator">
+                                    <i class="fas fa-database fa-lg" style="color: var(--color-primary-light);"></i>
+                                    <div class="size-info">
+                                        <div class="size-header">
+                                            <span>Taille totale</span>
+                                            <strong id="dataSize">0</strong>/500 caractères
+                                        </div>
+                                        <div class="size-bar"><div class="size-fill" id="globalSizeFill"></div></div>
+                                        <div class="size-message">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span>Taille optimale pour scan rapide</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Aperçu QR -->
+                            <div class="qr-preview-container">
+                                <div class="qr-preview-header">
+                                    <h3 class="qr-preview-title"><i class="fas fa-eye"></i> Aperçu</h3>
+                                    <div class="security-code-display" id="previewSecurityCode">Code: <span style="font-weight: bold; color: var(--color-primary-light);">---</span></div>
+                                </div>
+                                <div class="qr-code-display" id="qrPreview">
+                                    <div class="qr-placeholder">
+                                        <i class="fas fa-qrcode"></i>
+                                        <p>Le QR code apparaîtra ici</p>
+                                    </div>
+                                </div>
+                                <div class="qr-info">
+                                    <div class="qr-info-grid">
+                                        <div class="qr-info-item"><span class="qr-info-label">Événement</span><span class="qr-info-value" id="previewEventName">---</span></div>
+                                        <div class="qr-info-item"><span class="qr-info-label">Prix</span><span class="qr-info-value" id="previewPrice">---</span></div>
+                                        <div class="qr-info-item"><span class="qr-info-label">Lieu</span><span class="qr-info-value" id="previewLocation">---</span></div>
+                                        <div class="qr-info-item"><span class="qr-info-label">Expiration</span><span class="qr-info-value" id="previewExpiry">---</span></div>
+                                    </div>
+                                    <small>ID: <span id="previewEventId" style="color: var(--color-primary-light);">---</span> | Taille: <span id="previewDataSize">0</span> caractères</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GÉNÉRATION EN LOT -->
+                        <div class="bulk-section">
+                            <div class="bulk-section-header">
+                                <i class="fas fa-layer-group"></i>
+                                <div style="flex:1;">
+                                    <h3 style="margin:0 0 0.25rem 0;">Génération en Lot</h3>
+                                    <p style="margin:0; color:var(--color-text-secondary); font-size:0.875rem;">Générez plusieurs QR codes avec le même code secret</p>
+                                </div>
+                            </div>
+                            <!-- Disposition desktop pour les contrôles et stats -->
+                            <div class="bulk-desktop-row">
+                                <div class="bulk-controls">
+                                    <label style="display:block; margin-bottom:0.5rem; font-weight:600;"><i class="fas fa-copy"></i> Quantité</label>
+                                    <div class="bulk-quantity-control">
+                                        <input type="range" id="bulkQuantitySlider" class="bulk-quantity-slider" min="1" max="1000" value="1" step="1">
+                                        <div class="bulk-quantity-input-group">
+                                            <button id="decreaseQuantity" class="bulk-quantity-btn">-</button>
+                                            <input type="number" id="bulkQuantity" class="bulk-quantity-input" value="1" min="1" max="1000">
+                                            <button id="increaseQuantity" class="bulk-quantity-btn">+</button>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; margin-top:0.5rem; font-size:0.75rem; color:var(--color-text-secondary);">
+                                        <span>1 QR</span>
+                                        <span id="bulkTotalSize">~0 KB</span>
+                                        <span>1000 QR</span>
+                                    </div>
+                                </div>
+                                <div class="bulk-stats">
+                                    <div class="bulk-stat-card">
+                                        <i class="fas fa-qrcode"></i>
+                                        <div style="font-weight:600; color:var(--color-text);" id="bulkCount">1</div>
+                                        <div style="font-size:0.75rem; color:var(--color-text-secondary);">QR à générer</div>
+                                    </div>
+                                    <div class="bulk-stat-card">
+                                        <i class="fas fa-shield-alt"></i>
+                                        <div style="font-weight:600; color:var(--color-text);">Sécurisés</div>
+                                        <div style="font-size:0.75rem; color:var(--color-text-secondary);">Code unique</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bulk-actions">
+                                <button class="btn btn-primary" id="generateBulkBtn"><i class="fas fa-bolt"></i> Générer en Lot</button>
+                                <button class="btn btn-success" id="downloadBulkBtn" style="display:none;"><i class="fas fa-file-pdf"></i> Télécharger PDF</button>
+                                <button class="btn btn-secondary" id="previewBulkBtn" style="display:none;"><i class="fas fa-eye"></i> Aperçu</button>
+                            </div>
+                            <div id="bulkPreviewContainer" class="bulk-preview-container"></div>
+                        </div>
+
+                        <!-- Actions principales -->
+                        <div style="display:flex; gap:1rem; margin-top:2rem;">
+                            <button class="btn btn-primary" id="generateBtn" style="flex:1;"><i class="fas fa-qrcode"></i> Générer QR Code</button>
+                            <button class="btn btn-secondary" id="downloadBtn" style="display:none;"><i class="fas fa-download"></i> Télécharger</button>
+                            <button class="btn btn-secondary" id="clearFormBtn"><i class="fas fa-redo"></i> Effacer</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PAGE PARAMÈTRES -->
+                <section class="page" id="settingsPage">
+                    <div class="page-header">
+                        <h2 class="page-title"><i class="fas fa-cog"></i> Paramètres</h2>
+                        <p class="page-subtitle">Gérez votre code secret et la connexion</p>
+                    </div>
+                    <div class="settings-grid">
+                        <!-- Code Secret Unique -->
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <i class="fas fa-key"></i>
+                                <h3>Code Secret Unique</h3>
+                            </div>
+                            <div class="settings-card-body">
+                                <div class="stat-item">
+                                    <span class="status-indicator active"></span>
+                                    <div style="flex:1;">
+                                        <div>Statut du code</div>
+                                        <small style="color:var(--color-text-secondary);" id="keyStatusText">Actif</small>
+                                    </div>
+                                </div>
+                                <p style="font-size:0.75rem; color:var(--color-text-secondary); margin:1rem 0;">
+                                    Code secret unique pour tous vos QR codes. Il est automatiquement intégré.
+                                </p>
+                                <div style="background:var(--color-secondary); padding:0.75rem; border-radius:var(--radius-md); margin-bottom:1rem; word-break:break-all;">
+                                    <div style="font-size:0.75rem; color:var(--color-text-secondary); margin-bottom:0.25rem;">Code actuel :</div>
+                                    <div style="font-family:monospace; font-weight:600; color:var(--color-primary-light);" id="currentSecurityCodeDisplay">Chargement...</div>
+                                </div>
+                                <div style="display:flex; gap:0.5rem;">
+                                    <button class="btn btn-secondary" id="refreshCodeBtn" style="flex:1;"><i class="fas fa-sync-alt"></i> Récupérer</button>
+                                    <button class="btn btn-primary" id="copyCodeBtn" style="flex:1;"><i class="fas fa-copy"></i> Copier</button>
+                                </div>
+                                <!-- Nouveau bouton pour générer un code secret pour un nouvel événement -->
+                                <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+                                    <button class="btn btn-primary" id="newEventBtn" style="flex:1;"><i class="fas fa-calendar-plus"></i> Nouvel événement</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stockage -->
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <i class="fas fa-database"></i>
+                                <h3>Stockage Local</h3>
+                            </div>
+                            <div class="settings-card-body">
+                                <div class="stat-item">
+                                    <i class="fas fa-hdd"></i>
+                                    <div style="flex:1;">
+                                        <div>Espace utilisé</div>
+                                        <small style="color:var(--color-text-secondary);" id="storageUsage">Calcul...</small>
+                                    </div>
+                                </div>
+                                <div style="margin:1rem 0;">
+                                    <div class="storage-bar"><div class="storage-fill" id="storageFill" style="width:0%"></div></div>
+                                    <div class="storage-details">
+                                        <span id="storageUsed">0 KB</span>
+                                        <span>sur 5 MB</span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-danger" id="clearStorageBtn" style="width:100%; margin-top:0.5rem;">
+                                    <i class="fas fa-trash"></i> Nettoyer le stockage
+                                </button>
+                                <!-- Bouton de déconnexion -->
+                                <button class="btn btn-secondary" id="logoutBtn" style="width:100%; margin-top:1rem;">
+                                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Connexion Appareils -->
+                        <div class="settings-card">
+                            <div class="settings-card-header">
+                                <i class="fas fa-link"></i>
+                                <h3>Connexion Appareils</h3>
+                            </div>
+                            <div class="settings-card-body">
+                                <div class="device-status">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <div style="flex:1;">
+                                        <div>Code prêt à être partagé</div>
+                                        <small style="color:var(--color-text-secondary);" id="connectionStatus">Générer un QR de connexion</small>
+                                    </div>
+                                </div>
+                                <p style="font-size:0.75rem; color:var(--color-text-secondary); margin:1rem 0;">
+                                    Générez un QR code contenant votre code secret. Scannez-le avec le Terminal QRGuardian pour synchroniser.
+                                </p>
+                                <div style="display:flex; gap:0.5rem; flex-direction:column;">
+                                    <button class="btn btn-primary" id="generateConnectionQRBtn">
+                                        <i class="fas fa-qrcode"></i> Générer QR Connexion
+                                    </button>
+                                </div>
+                                <div id="connectionQRContainer" style="display:none; margin-top:1.5rem;">
+                                    <div class="connection-qr-container">
+                                        <div class="connection-qr-header">
+                                            <i class="fas fa-shield-alt"></i>
+                                            <h4 style="margin:0;">QR Code de Connexion</h4>
+                                        </div>
+                                        <p style="color:var(--color-text-secondary); font-size:0.875rem; margin-bottom:1rem;">
+                                            Scannez ce QR code avec le Terminal QRGuardian
+                                        </p>
+                                        <div class="connection-qr-code" id="connectionQRCode"></div>
+                                        <div class="connection-instructions">
+                                            <h4><i class="fas fa-info-circle"></i> Instructions :</h4>
+                                            <ol>
+                                                <li>Générez ce QR code sur cet appareil</li>
+                                                <li>Ouvrez QRGuardian Terminal sur l'autre appareil</li>
+                                                <li>Allez dans Paramètres → Connexion</li>
+                                                <li>Scannez ce QR code pour synchroniser le code secret</li>
+                                            </ol>
+                                        </div>
+                                        <div class="connection-actions">
+                                            <button class="btn btn-secondary" id="closeConnectionQRBtn"><i class="fas fa-times"></i> Fermer</button>
+                                            <button class="btn btn-primary" id="downloadConnectionQRBtn"><i class="fas fa-download"></i> Télécharger</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- Navigation bas (mobile) -->
+        <nav class="bottom-nav" id="bottomNav">
+            <button class="nav-btn active" data-page="generatePage">
+                <div class="nav-icon"><i class="fas fa-qrcode"></i></div>
+                <span class="nav-label">Générer</span>
+            </button>
+            <button class="nav-btn" data-page="settingsPage">
+                <div class="nav-icon"><i class="fas fa-cog"></i></div>
+                <span class="nav-label">Paramètres</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- MODAL DE VÉRIFICATION PIN POUR PARAMÈTRES -->
+    <div class="pin-modal" id="pinModal">
+        <div class="pin-modal-content">
+            <div class="pin-modal-header">
+                <h3><i class="fas fa-lock"></i> Accès sécurisé</h3>
+                <p>Veuillez saisir votre code PIN pour accéder aux paramètres</p>
+            </div>
+            <div class="pin-container">
+                <div class="pin-inputs" id="modalPinInputs">
+                    <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]" autofocus>
+                    <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
+                    <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
+                    <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
+                </div>
+            </div>
+            <div class="pin-modal-actions">
+                <button class="btn btn-secondary" id="cancelPinModal">Annuler</button>
+                <button class="btn btn-primary" id="confirmPinModal">Valider</button>
+            </div>
+            <div class="pin-modal-error" id="pinModalError">Code PIN incorrect</div>
+        </div>
+    </div>
+
+    <!-- Scripts nécessaires -->
+    <script src="js/qrcode.min.js"></script>
+    <script src="js/jspdf.umd.min.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/bulk-generator.js"></script>
+    <script src="js/app.js"></script>
+
+    <!-- Script pour afficher le code de secours dynamiquement -->
+    <script>
+        // Ce script doit être exécuté après le chargement de AuthManager
+        // On attend que l'app soit initialisée
+        document.addEventListener('DOMContentLoaded', () => {
+            // On vérifie périodiquement si auth est disponible
+            const checkAuth = setInterval(() => {
+                if (window.qrGuardianGenerator && window.qrGuardianGenerator.auth) {
+                    clearInterval(checkAuth);
+                    const auth = window.qrGuardianGenerator.auth;
+                    const backupCode = auth.getBackupPin();
+                    const backupContainer = document.getElementById('backupCodeContainer');
+                    const backupInput = document.getElementById('backupCodeInput');
+                    if (backupContainer && backupInput) {
+                        backupInput.value = backupCode;
+                        backupContainer.style.display = 'block';
+                    }
+                }
+            }, 100);
+        });
+
+        // Copier le code de secours
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('#copyBackupCodeBtn')) {
+                const input = document.getElementById('backupCodeInput');
+                if (input) {
+                    navigator.clipboard.writeText(input.value).then(() => {
+                        // Notification simple
+                        const notification = document.createElement('div');
+                        notification.className = 'notification success';
+                        notification.innerHTML = `
+                            <div class="notification-header">
+                                <i class="fas fa-check-circle"></i>
+                                <h4>Code copié</h4>
+                            </div>
+                            <p>Le code de secours a été copié dans le presse-papier.</p>
+                        `;
+                        document.body.appendChild(notification);
+                        setTimeout(() => notification.classList.add('show'), 10);
+                        setTimeout(() => {
+                            notification.classList.remove('show');
+                            setTimeout(() => notification.remove(), 300);
+                        }, 3000);
+                    }).catch(err => console.error('Erreur de copie:', err));
+                }
+            }
+        });
+    </script>
+
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker enregistré (scope:', reg.scope, ')'))
+                    .catch(err => console.error('Erreur Service Worker:', err));
+            });
+        }
+    </script>
+</body>
+</html>

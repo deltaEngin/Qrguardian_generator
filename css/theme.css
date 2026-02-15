@@ -1,0 +1,69 @@
+/* themes.css - Variables de thème supplémentaires */
+
+/* Ajustements spécifiques pour le thème clair */
+body.light-theme .card-preview {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+body.light-theme .detail-item {
+    background: #f8fafc;
+}
+
+body.light-theme .qr-container {
+    background: white;
+}
+
+body.light-theme .help-box {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(30, 58, 138, 0.03) 100%);
+}
+
+body.light-theme .stat-card {
+    background: white;
+}
+
+body.light-theme .security-item i {
+    background: #f8fafc;
+}
+
+body.light-theme .about-link {
+    background: #f8fafc;
+}
+
+/* Ajustements spécifiques pour le thème sombre */
+body:not(.light-theme) .card-preview {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+body:not(.light-theme) .detail-item {
+    background: rgba(30, 41, 59, 0.7);
+}
+
+body:not(.light-theme) .qr-container {
+    background: rgba(15, 23, 42, 0.5);
+}
+
+body:not(.light-theme) .help-box {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(30, 58, 138, 0.05) 100%);
+}
+
+body:not(.light-theme) .stat-card {
+    background: rgba(15, 23, 42, 0.5);
+}
+
+body:not(.light-theme) .security-item i {
+    background: rgba(30, 41, 59, 0.8);
+}
+
+body:not(.light-theme) .about-link {
+    background: rgba(15, 23, 42, 0.5);
+}
+
+/* Transitions fluides pour les changements de thème */
+.form-section,
+.card-preview,
+.scanner-container,
+.results-container,
+.settings-card,
+.modal-content {
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
