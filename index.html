@@ -4,17 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f172a">
-    <!-- PWA – iOS -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="QRGuardian Generator">
     <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
-    <!-- Manifeste PWA -->
     <link rel="manifest" href="./manifest.json">
     <title>QRGuardian - Générateur Professionnel</title>
-    <link rel="stylesheet" href="./css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* ===== VARIABLES ET RESET ===== (identique au terminal corrigé) */
+        /* ===== VARIABLES ET RESET ===== */
         :root {
             --color-primary: #2563eb;
             --color-primary-dark: #0f172a;
@@ -44,170 +43,56 @@
             --radius-lg: 16px;
             --radius-xl: 24px;
             --radius-full: 9999px;
-            --transition-normal: 300ms ease;
+            --transition-normal: 0s;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
-        /* ===== THÈME CLAIR – FOND BLANC, TEXTES BLEU NUIT, ACCENTS BLEUS ===== */
-        .light-theme {
-            --color-primary: #2563eb;
-            --color-primary-dark: #ffffff;      /* Fond blanc pur */
-            --color-primary-light: #3b82f6;
-            --color-secondary: #f1f5f9;
-            --color-secondary-dark: #e2e8f0;
-            --color-secondary-light: #ffffff;
-            --color-surface: #ffffff;
-            --color-surface-dark: #f8fafc;
-            --color-surface-light: #f9fafb;
-            --color-text: #0f172a;              /* Bleu nuit pour les textes */
-            --color-text-secondary: #334155;
-            --color-text-muted: #64748b;
-            --color-border: #cbd5e1;
-            --color-border-light: #e2e8f0;
-            --color-success: #059669;
-            --color-warning: #d97706;
-            --color-danger: #dc2626;
-            --color-info: #2563eb;
-            --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            --gradient-surface: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
-            --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+        * {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        /* --- Surcharges spécifiques au thème clair --- */
-        .light-theme .btn-primary {
-            background: var(--gradient-primary);
-            color: white;
-            border: none;
-        }
-        .light-theme .btn-primary:hover {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        }
-        .light-theme .btn-secondary {
-            background: white;
-            color: #1e293b;
-            border: 1px solid #94a3b8;
-        }
-        .light-theme .btn-secondary:hover {
-            background: #f8fafc;
-            border-color: #64748b;
-        }
-        .light-theme .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-        .light-theme .btn-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-        }
-        .light-theme .theme-toggle, 
-        .light-theme .refresh-btn {
-            background: white;
-            border: 1px solid #cbd5e1;
-            color: #334155;
-        }
-        .light-theme .theme-toggle i.fa-sun {
-            color: #f59e0b;
-        }
-        .light-theme .theme-toggle i.fa-moon {
-            color: #475569;
-        }
-        .light-theme .logo-icon {
-            color: #2563eb;
-            background: none;
-            -webkit-background-clip: unset;
-            -webkit-text-fill-color: unset;
-        }
-        .light-theme .app-header,
-        .light-theme .bottom-nav {
-            background: white;
-            border-bottom-color: #e2e8f0;
-            border-top-color: #e2e8f0;
-        }
-        .light-theme .settings-card,
-        .light-theme .stat-card,
-        .light-theme .qr-preview-container,
-        .light-theme .bulk-section,
-        .light-theme .history-item,
-        .light-theme .data-size-indicator {
-            background: white;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-        }
-        .light-theme .code-box {
-            background: #f1f5f9;
-            color: #2563eb;
-            border: 1px solid #cbd5e1;
-        }
-        .light-theme .storage-bar {
-            background: #e2e8f0;
-        }
-        .light-theme .storage-fill {
-            background: linear-gradient(90deg, #2563eb, #3b82f6);
-        }
-        .light-theme .nav-btn {
-            color: #64748b;
-        }
-        .light-theme .nav-btn:hover {
-            background: rgba(37, 99, 235, 0.05);
-            color: #2563eb;
-        }
-        .light-theme .nav-btn.active {
-            color: #2563eb;
-            background: rgba(37, 99, 235, 0.1);
-        }
-        .light-theme .nav-btn.active::after {
-            background: #2563eb;
-        }
-        .light-theme .page-header {
-            border-bottom-color: #e2e8f0;
-        }
-        .light-theme .history-controls {
-            background: white;
-            border-color: #e2e8f0;
-        }
-        .light-theme .history-date {
-            background: #f1f5f9;
-            color: #334155;
-        }
-
-        /* --- Reset et styles généraux --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--color-primary-dark);
             color: var(--color-text);
             min-height: 100vh;
             overflow-x: hidden;
         }
+
         .app-container {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             background: var(--color-primary-dark);
         }
+
         .app-header {
             background: var(--gradient-surface);
             border-bottom: 1px solid var(--color-border);
             padding: 1rem 1.5rem;
-            backdrop-filter: blur(10px);
             position: sticky;
             top: 0;
             z-index: 100;
             box-shadow: var(--shadow-md);
         }
+
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            max-width: 1400px; /* élargi pour dashboard */
+            max-width: 1400px;
             margin: 0 auto;
         }
+
         .logo-container {
             display: flex;
             align-items: center;
             gap: 0.75rem;
         }
+
         .logo-icon {
             font-size: 2rem;
             color: var(--color-primary-light);
@@ -215,25 +100,47 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
         .logo-text {
             display: flex;
             flex-direction: column;
         }
+
         .app-title {
             font-size: 1.5rem;
             font-weight: 800;
             color: var(--color-text);
         }
+
         .app-subtitle {
             font-size: 0.75rem;
             color: var(--color-text-secondary);
             text-transform: uppercase;
         }
+
         .header-actions {
             display: flex;
             gap: 1rem;
             align-items: center;
         }
+
+        .hamburger-btn {
+            background: var(--color-surface);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .hamburger-btn i {
+            font-size: 1.2rem;
+        }
+
         .btn {
             padding: 0.75rem 1.5rem;
             border: none;
@@ -245,11 +152,11 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            transition: all var(--transition-normal);
             text-decoration: none;
+            transition: background 0.2s;
         }
+
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn:not(:disabled):hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
         .btn-primary {
             background: var(--gradient-primary);
             color: white;
@@ -278,6 +185,7 @@
             width: 2.5rem;
             height: 2.5rem;
         }
+
         .theme-toggle, .refresh-btn {
             background: var(--color-surface);
             color: var(--color-text);
@@ -289,46 +197,120 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all var(--transition-normal);
         }
+
         .theme-toggle:hover, .refresh-btn:hover {
             background: var(--color-secondary);
-            transform: rotate(15deg);
             border-color: var(--color-primary-light);
         }
-        /* Disposition principale avec sidebar */
+
+        /* Menu latéral (hamburger) */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            z-index: 200;
+            transition: left 0.3s ease;
+            padding: 1rem;
+            box-shadow: var(--shadow-lg);
+        }
+        .side-menu.open {
+            left: 0;
+        }
+        .side-menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .side-menu-header h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .close-menu {
+            background: none;
+            border: none;
+            color: var(--color-text);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .side-menu .nav-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            border-radius: var(--radius-md);
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+            text-align: left;
+        }
+        .side-menu .nav-btn i {
+            width: 1.5rem;
+        }
+        .side-menu .nav-btn:hover {
+            background: rgba(59,130,246,0.1);
+            color: var(--color-text);
+        }
+        .side-menu .nav-btn.active {
+            background: rgba(59,130,246,0.15);
+            color: var(--color-primary-light);
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 150;
+            display: none;
+        }
+        .overlay.show {
+            display: block;
+        }
+
+        /* Layout principal */
         .main-layout {
             display: flex;
             flex: 1;
             max-width: 1400px;
             margin: 0 auto;
             width: 100%;
-            padding: 1.5rem 0 1.5rem 1.5rem; /* espace à gauche pour la sidebar */
+            padding: 1.5rem;
             gap: 1.5rem;
         }
         .main-content {
             flex: 1;
             overflow-y: auto;
-            padding: 3rem 1.5rem 1.5rem 1.5rem; /* haut augmenté pour dégager le header */
         }
-        /* Sidebar (navigation) – visible sur desktop uniquement quand authentifié */
+
+        /* Sidebar (desktop) */
         .sidebar-nav {
             width: 220px;
             background: var(--gradient-surface);
             border-right: 1px solid var(--color-border);
             border-radius: var(--radius-lg);
             padding: 1rem 0.5rem;
-            display: none; /* caché par défaut */
+            display: none;
             flex-direction: column;
             gap: 0.5rem;
-            backdrop-filter: blur(10px);
             box-shadow: var(--shadow-md);
             height: fit-content;
             position: sticky;
-            top: 90px; /* en dessous du header */
+            top: 90px;
         }
         body.authenticated .sidebar-nav {
-            display: flex !important; /* affiché quand authentifié */
+            display: flex;
         }
         .sidebar-nav .nav-btn {
             width: 100%;
@@ -341,7 +323,6 @@
             background: none;
             border: none;
             cursor: pointer;
-            transition: all var(--transition-normal);
             font-size: 0.9rem;
         }
         .sidebar-nav .nav-btn:hover {
@@ -363,72 +344,12 @@
             background: var(--color-primary-light);
             border-radius: 0 var(--radius-full) var(--radius-full) 0;
         }
-        .sidebar-nav .nav-icon {
-            font-size: 1.2rem;
-            margin-bottom: 0;
-        }
-        .sidebar-nav .nav-label {
-            font-size: 0.9rem;
-            text-transform: none;
-        }
-        /* Navigation bas – cachée sur desktop, visible sur mobile quand authentifié */
-        .bottom-nav {
-            background: var(--gradient-surface);
-            border-top: 1px solid var(--color-border);
-            display: none !important;
-            padding: 0.5rem;
-            position: sticky;
-            bottom: 0;
-            z-index: 100;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-        }
-        body.authenticated .bottom-nav {
-            display: flex !important; /* affiché sur mobile quand authentifié */
-        }
-        .bottom-nav .nav-btn {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: none;
-            border: none;
-            padding: 0.75rem 0.5rem;
-            color: var(--color-text-secondary);
-            cursor: pointer;
-            transition: all var(--transition-normal);
-            border-radius: var(--radius-md);
-            position: relative;
-        }
-        .bottom-nav .nav-btn:hover {
-            color: var(--color-text);
-            background: rgba(59,130,246,0.1);
-        }
-        .bottom-nav .nav-btn.active {
-            color: var(--color-primary-light);
-            background: rgba(59,130,246,0.15);
-        }
-        .bottom-nav .nav-btn.active::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 24px;
-            height: 3px;
-            background: var(--color-primary-light);
-            border-radius: 0 0 2px 2px;
-        }
-        .bottom-nav .nav-icon { font-size: 1.25rem; margin-bottom: 0.25rem; }
-        .bottom-nav .nav-label { font-size: 0.625rem; font-weight: 600; text-transform: uppercase; }
+        .sidebar-nav .nav-icon { font-size: 1.2rem; margin-bottom: 0; }
+        .sidebar-nav .nav-label { font-size: 0.9rem; text-transform: none; }
 
-        /* Reste des styles inchangés */
-        .page { display: none; animation: pageFadeIn 0.4s ease-out; }
+        /* Pages */
+        .page { display: none; }
         .page.active { display: block; }
-        @keyframes pageFadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
         .page-header { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--color-border); }
         .page-title {
             font-size: 1.75rem;
@@ -441,9 +362,16 @@
         }
         .page-subtitle { color: var(--color-text-secondary); font-size: 0.875rem; }
 
-        /* ===== FORMULAIRE ===== */
-        .form-simple { max-width: 1000px; margin: 0 auto; }
-        .input-group { margin-bottom: 1.5rem; }
+        /* Formulaire 3 colonnes */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .input-group {
+            margin-bottom: 0;
+        }
         .input-label {
             display: block;
             margin-bottom: 0.5rem;
@@ -460,7 +388,6 @@
             border-radius: var(--radius-md);
             color: var(--color-text);
             font-size: 1rem;
-            transition: all var(--transition-normal);
         }
         .input-field:focus {
             outline: none;
@@ -491,18 +418,22 @@
             height: 100%;
             background: var(--color-success);
             border-radius: 2px;
-            transition: width var(--transition-normal);
         }
         .char-fill.warning { background: var(--color-warning); }
         .char-fill.danger { background: var(--color-danger); }
         .char-count { font-weight: 600; min-width: 3rem; text-align: right; }
 
-        /* ===== INDICATEUR TAILLE ===== */
+        /* Indicateur taille et aperçu */
+        .qr-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
         .data-size-indicator {
             background: var(--color-surface);
             border-radius: var(--radius-lg);
             padding: 1.5rem;
-            margin: 2rem 0;
             border: 1px solid var(--color-border);
         }
         .size-indicator { display: flex; align-items: center; gap: 1rem; }
@@ -519,7 +450,6 @@
             height: 100%;
             background: var(--gradient-primary);
             border-radius: 4px;
-            transition: width var(--transition-normal);
         }
         .size-message {
             font-size: 0.75rem;
@@ -529,12 +459,10 @@
             gap: 0.5rem;
         }
 
-        /* ===== APERÇU QR ===== */
         .qr-preview-container {
             background: var(--color-surface);
             border-radius: var(--radius-xl);
-            padding: 2rem;
-            margin-bottom: 2rem;
+            padding: 1.5rem;
             border: 1px solid var(--color-border);
             box-shadow: var(--shadow-lg);
             text-align: center;
@@ -543,7 +471,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             padding-bottom: 1rem;
             border-bottom: 1px solid var(--color-border);
         }
@@ -563,35 +491,31 @@
         }
         .qr-code-display {
             display: inline-block;
-            padding: 1.5rem;
+            padding: 1rem;
             background: white;
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-md);
             margin: 1rem 0;
         }
         .qr-placeholder {
-            padding: 3rem 2rem;
+            padding: 2rem;
             background: rgba(255,255,255,0.05);
             border-radius: var(--radius-lg);
             border: 2px dashed var(--color-border);
             color: var(--color-text-secondary);
         }
         .qr-placeholder i { font-size: 4rem; margin-bottom: 1rem; color: var(--color-border); }
-        .qr-info { margin-top: 1.5rem; font-size: 0.875rem; color: var(--color-text-secondary); }
         .qr-info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 1rem;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            background: rgba(30,41,59,0.5);
-            border-radius: var(--radius-md);
+            margin: 1rem 0;
         }
         .qr-info-item { text-align: center; }
         .qr-info-label { display: block; font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 0.25rem; }
         .qr-info-value { font-weight: 600; color: var(--color-text); word-break: break-word; }
 
-        /* ===== GÉNÉRATION EN LOT ===== */
+        /* GÉNÉRATION EN LOT */
         .bulk-section {
             margin: 2rem 0;
             padding: 1.5rem;
@@ -599,20 +523,16 @@
             border-radius: var(--radius-xl);
             border: 1px solid var(--color-border);
         }
-        .bulk-section-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+        .bulk-desktop-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
             margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--color-border);
         }
-        .bulk-section-header i { color: var(--color-primary-light); font-size: 1.5rem; }
         .bulk-quantity-control {
             display: flex;
             align-items: center;
             gap: 1rem;
-            margin-bottom: 0.5rem;
         }
         .bulk-quantity-slider {
             flex: 1;
@@ -658,9 +578,8 @@
         }
         .bulk-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 1rem;
-            margin-bottom: 1.5rem;
         }
         .bulk-stat-card {
             text-align: center;
@@ -669,32 +588,69 @@
             border-radius: var(--radius-md);
             border: 1px solid var(--color-border);
         }
-        .bulk-stat-card i { font-size: 2rem; color: var(--color-primary-light); margin-bottom: 0.5rem; }
-        .bulk-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
-        .bulk-actions .btn { flex: 1; min-width: 150px; }
-        .bulk-preview-container { display: none; margin-top: 2rem; }
-        .bulk-progress { margin: 1rem 0; }
-        .bulk-progress-bar {
-            height: 8px;
-            background: var(--color-border);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 0.5rem;
+
+        /* STATISTIQUES */
+        .stats-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
         }
-        .bulk-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #10b981, #34d399);
-            border-radius: 4px;
-            transition: width var(--transition-normal);
-        }
-        .bulk-info-panel {
+        .filter-btn {
+            padding: 0.5rem 1rem;
             background: var(--color-secondary);
-            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-full);
+            color: var(--color-text);
+            cursor: pointer;
+        }
+        .filter-btn.active {
+            background: var(--gradient-primary);
+            border-color: var(--color-primary-light);
+        }
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--color-surface);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            border: 1px solid var(--color-border);
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-text);
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+        }
+        .generations-list {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
             padding: 1rem;
-            margin-bottom: 1.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .generation-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .empty-history {
+            text-align: center;
+            padding: 2rem;
+            color: var(--color-text-secondary);
         }
 
-        /* ===== PARAMÈTRES ===== */
+        /* PARAMÈTRES */
         .settings-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px,1fr));
@@ -706,12 +662,6 @@
             padding: 1.5rem;
             border: 1px solid var(--color-border);
             box-shadow: var(--shadow-sm);
-            transition: all var(--transition-normal);
-        }
-        .settings-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--color-primary-light);
         }
         .settings-card-header {
             display: flex;
@@ -728,7 +678,6 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .settings-card-header h3 { font-size: 1.25rem; font-weight: 600; }
         .stat-item {
             display: flex;
             align-items: center;
@@ -738,19 +687,17 @@
             border-radius: var(--radius-md);
             margin-bottom: 0.75rem;
         }
-        .stat-item i { font-size: 1.25rem; color: var(--color-primary-light); }
         .storage-bar {
             height: 8px;
             background: var(--color-border);
             border-radius: 4px;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
             overflow: hidden;
         }
         .storage-fill {
             height: 100%;
             background: var(--gradient-primary);
             border-radius: 4px;
-            transition: width var(--transition-normal);
         }
         .storage-details {
             display: flex;
@@ -759,65 +706,73 @@
             color: var(--color-text-secondary);
         }
 
-        /* ===== CONNEXION ===== */
+        /* Styles pour le QR de connexion */
         .connection-qr-container {
             background: var(--color-surface);
             border-radius: var(--radius-xl);
-            padding: 2rem;
-            margin: 1rem 0;
-            border: 2px solid var(--color-primary-light);
+            padding: 1.5rem;
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-lg);
             text-align: center;
+            margin-top: 1rem;
         }
         .connection-qr-header {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            color: var(--color-primary-light);
         }
-        .connection-qr-header i { font-size: 1.5rem; color: var(--color-primary-light); }
+        .connection-qr-header i {
+            font-size: 1.5rem;
+        }
         .connection-qr-code {
             display: inline-block;
             padding: 1rem;
             background: white;
             border-radius: var(--radius-lg);
             margin: 1rem 0;
+            box-shadow: var(--shadow-md);
+        }
+        .connection-qr-code img, 
+        .connection-qr-code canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            margin: 0 auto;
         }
         .connection-instructions {
-            background: rgba(30,58,138,0.1);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            margin-top: 1.5rem;
-            border: 1px solid rgba(59,130,246,0.2);
             text-align: left;
+            background: var(--color-secondary);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin: 1rem 0;
+            border-left: 4px solid var(--color-primary-light);
         }
         .connection-instructions h4 {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            color: var(--color-primary-light);
             margin-bottom: 0.75rem;
+            color: var(--color-text);
         }
         .connection-instructions ol {
             margin-left: 1.5rem;
             color: var(--color-text-secondary);
             font-size: 0.875rem;
-            line-height: 1.6;
         }
-        .device-status {
+        .connection-instructions li {
+            margin-bottom: 0.25rem;
+        }
+        .connection-actions {
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            background: var(--color-secondary);
-            border-radius: var(--radius-md);
-            margin-bottom: 1rem;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
         }
-        .device-status i { font-size: 1.25rem; color: var(--color-success); }
-        .connection-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
-        .connection-actions .btn { flex: 1; }
 
-        /* ===== NOTIFICATIONS ===== */
+        /* NOTIFICATIONS */
         .notification {
             position: fixed;
             top: 1rem;
@@ -830,10 +785,19 @@
             box-shadow: var(--shadow-xl);
             z-index: 1000;
             transform: translateX(400px);
-            transition: transform var(--transition-normal);
             border: 1px solid var(--color-border);
         }
         .notification.show { transform: translateX(0); }
+        .notification.confirm {
+            border-left-color: var(--color-warning);
+            max-width: 400px;
+        }
+        .notification .confirm-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            justify-content: flex-end;
+        }
         .notification.success { border-left-color: var(--color-success); }
         .notification.error { border-left-color: var(--color-danger); }
         .notification.warning { border-left-color: var(--color-warning); }
@@ -847,7 +811,7 @@
         .notification-header h4 { font-size: 0.875rem; font-weight: 600; }
         .notification p { font-size: 0.75rem; color: var(--color-text-secondary); }
 
-        /* ===== PAGE LOGIN ===== */
+        /* ===== PAGE LOGIN AMÉLIORÉE ===== */
         .login-container {
             display: flex;
             justify-content: center;
@@ -858,7 +822,7 @@
         .login-card {
             background: var(--color-surface);
             border-radius: var(--radius-xl);
-            padding: 2.5rem 2rem;
+            padding: 2rem;
             border: 1px solid var(--color-border);
             box-shadow: var(--shadow-lg);
             max-width: 450px;
@@ -868,6 +832,7 @@
             text-align: center;
             margin-bottom: 2rem;
         }
+        
         .login-logo {
             font-size: 3rem;
             color: var(--color-primary-light);
@@ -903,6 +868,7 @@
             display: flex;
             gap: 0.75rem;
             justify-content: center;
+            flex-wrap: wrap;
         }
         .pin-digit {
             width: 3.5rem;
@@ -914,11 +880,9 @@
             border: 2px solid var(--color-border);
             border-radius: var(--radius-md);
             color: var(--color-text);
-            transition: all var(--transition-normal);
         }
         .pin-digit:focus {
             border-color: var(--color-primary-light);
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
             outline: none;
         }
         .toggle-form {
@@ -934,7 +898,7 @@
         .toggle-form a:hover {
             text-decoration: underline;
         }
-        /* Style pour le code de secours masqué */
+        /* Code de secours */
         .backup-code-container {
             margin-top: 1.5rem;
             padding: 1rem;
@@ -980,44 +944,13 @@
             border-radius: var(--radius-md);
             color: var(--color-text);
             cursor: pointer;
-            transition: all var(--transition-normal);
         }
         .backup-copy-btn:hover {
             background: var(--color-primary-light);
             color: white;
         }
 
-        /* Ajustement responsive pour les PIN */
-        @media (max-width: 480px) {
-            .pin-digit {
-                width: 2.8rem;
-                height: 2.8rem;
-                font-size: 1.5rem;
-            }
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (min-width: 992px) {
-            /* Sur desktop, la bottom-nav reste cachée (gérée par authenticated) */
-            body.authenticated .bottom-nav {
-                display: none !important;
-            }
-        }
-        @media (max-width: 991px) {
-            /* Sur mobile, on cache la sidebar même si authentifié */
-            body.authenticated .sidebar-nav,
-            .sidebar-nav {
-                display: none !important;
-            }
-            .main-layout {
-                padding: 0 1rem;
-            }
-            .main-content {
-                padding: 2.5rem 1rem 1rem 1rem; /* haut adapté mobile */
-            }
-        }
-
-        /* ===== MODAL DE VÉRIFICATION PIN POUR PARAMÈTRES ===== */
+        /* MODAL PIN */
         .pin-modal {
             display: none;
             position: fixed;
@@ -1063,9 +996,6 @@
             font-size: 0.9rem;
             margin-top: 0.5rem;
         }
-        .pin-modal .pin-inputs {
-            margin-bottom: 1.5rem;
-        }
         .pin-modal-actions {
             display: flex;
             gap: 1rem;
@@ -1083,21 +1013,94 @@
         .pin-modal-error.show {
             display: block;
         }
+
+        /* Ajustements pour petits écrans */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .qr-row {
+                grid-template-columns: 1fr;
+            }
+            .bulk-desktop-row {
+                grid-template-columns: 1fr;
+            }
+            .pin-digit {
+                width: 3rem;
+                height: 3rem;
+                font-size: 1.5rem;
+            }
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Responsive pour la sidebar */
+        @media (min-width: 993px) {
+            .hamburger-btn {
+                display: none;
+            }
+            .sidebar-nav {
+                display: none;
+            }
+            body.authenticated .sidebar-nav {
+                display: flex;
+            }
+        }
+        @media (max-width: 992px) {
+            .sidebar-nav {
+                display: none !important;
+            }
+            .hamburger-btn {
+                display: flex;
+            }
+        }
+
+        /* Thème clair */
+        .light-theme {
+            --color-primary: #2563eb;
+            --color-primary-dark: #ffffff;
+            --color-primary-light: #3b82f6;
+            --color-secondary: #f1f5f9;
+            --color-secondary-dark: #e2e8f0;
+            --color-secondary-light: #ffffff;
+            --color-surface: #ffffff;
+            --color-surface-dark: #f8fafc;
+            --color-surface-light: #f9fafb;
+            --color-text: #0f172a;
+            --color-text-secondary: #334155;
+            --color-text-muted: #64748b;
+            --color-border: #cbd5e1;
+            --color-border-light: #e2e8f0;
+            --color-success: #059669;
+            --color-warning: #d97706;
+            --color-danger: #dc2626;
+            --color-info: #2563eb;
+            --gradient-primary: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            --gradient-surface: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body class="dark-theme">
     <div class="app-container">
         <header class="app-header">
             <div class="header-content">
-                <div class="logo-container">
-                    <i class="fas fa-shield-alt logo-icon"></i>
+                <div class="logo-container">                 
                     <div class="logo-text">
                         <h1 class="app-title">QRGuardian</h1>
                         <span class="app-subtitle">Générateur Professionnel</span>
                     </div>
                 </div>
                 <div class="header-actions">
-                    <button id="refreshBtn" class="refresh-btn" aria-label="Rafraîchir" title="Réinitialiser">
+                    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <button id="refreshBtn" class="refresh-btn" aria-label="Rafraîchir">
                         <i class="fas fa-sync-alt"></i>
                     </button>
                     <button id="themeToggle" class="theme-toggle" aria-label="Changer de thème">
@@ -1107,13 +1110,35 @@
             </div>
         </header>
 
-        <!-- Layout principal avec sidebar et contenu -->
+        <!-- Menu latéral (hamburger) -->
+        <div class="side-menu" id="sideMenu">
+            <div class="side-menu-header">
+                <h3>Navigation</h3>
+                <button class="close-menu" id="closeMenuBtn">&times;</button>
+            </div>
+            <button class="nav-btn" data-page="generatePage">
+                <i class="fas fa-qrcode"></i> Générer
+            </button>
+            <button class="nav-btn" data-page="statsPage">
+                <i class="fas fa-chart-bar"></i> Statistiques
+            </button>
+            <button class="nav-btn" data-page="settingsPage">
+                <i class="fas fa-cog"></i> Paramètres
+            </button>
+        </div>
+        <div class="overlay" id="overlay"></div>
+
+        <!-- Layout principal -->
         <div class="main-layout">
-            <!-- Sidebar (visible sur desktop après authentification) -->
+            <!-- Sidebar (desktop) -->
             <nav class="sidebar-nav" id="sidebarNav">
                 <button class="nav-btn active" data-page="generatePage">
                     <div class="nav-icon"><i class="fas fa-qrcode"></i></div>
                     <span class="nav-label">Générer</span>
+                </button>
+                <button class="nav-btn" data-page="statsPage">
+                    <div class="nav-icon"><i class="fas fa-chart-bar"></i></div>
+                    <span class="nav-label">Statistiques</span>
                 </button>
                 <button class="nav-btn" data-page="settingsPage">
                     <div class="nav-icon"><i class="fas fa-cog"></i></div>
@@ -1123,19 +1148,17 @@
 
             <!-- Contenu principal -->
             <main class="main-content">
-                <!-- PAGE LOGIN / SIGNUP (s'affiche en premier si non authentifié) -->
+                <!-- PAGE LOGIN / SIGNUP -->
                 <section class="page active" id="loginPage">
                     <div class="login-container">
                         <div class="login-card">
                             <div class="login-header">
-                                <i class="fas fa-shield-alt login-logo"></i>
+                                <i class="fas fa-ticket-alt login-logo"></i>
                                 <h2>QRGuardian Generator</h2>
                                 <p class="login-subtitle">Accès sécurisé</p>
                             </div>
-
-                            <!-- Formulaire de connexion (par défaut) -->
                             <div id="loginForm" class="login-form">
-                                <h3><i class="fas fa-lock"></i> Connexion</h3>
+                                <h3 class="connexion"><i class="fas fa-lock"></i> Connexion</h3>
                                 <div class="pin-container">
                                     <label>Code PIN à 4 chiffres</label>
                                     <div class="pin-inputs">
@@ -1150,7 +1173,6 @@
                                     Pas encore de compte ?
                                     <a href="#" id="showSignupLink">Créer un compte</a>
                                 </p>
-                                <!-- Code de secours – affiché masqué, copiable -->
                                 <div class="backup-code-container" id="backupCodeContainer" style="display: none;">
                                     <div class="backup-code-header">
                                         <i class="fas fa-key"></i>
@@ -1164,8 +1186,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Formulaire d'inscription (caché par défaut) -->
                             <div id="signupForm" class="login-form" style="display: none;">
                                 <h3><i class="fas fa-user-plus"></i> Inscription</h3>
                                 <div class="input-group">
@@ -1207,14 +1227,14 @@
                         <p class="page-subtitle">Créez un QR code sécurisé avec code secret unique</p>
                     </div>
                     <div class="form-simple">
-                        <!-- Grille pour les champs du formulaire (desktop) -->
+                        <!-- Grille 3 colonnes -->
                         <div class="form-grid">
                             <!-- Nom événement -->
                             <div class="input-group">
-                                <label for="eventName" class="input-label"><i class="fas fa-calendar-alt"></i> Nom de l'événement *</label>
-                                <input type="text" id="eventName" class="input-field" placeholder="Ex: Concert Rock 2024" maxlength="80" required>
+                                <label for="eventName" class="input-label"><i class="fas fa-calendar-alt"></i> Nom *</label>
+                                <input type="text" id="eventName" class="input-field" placeholder="Ex: Concert Rock" maxlength="80" required>
                                 <div class="input-hint">
-                                    <span>Requis • Max 80</span>
+                                    <span>Max 80</span>
                                     <div class="char-counter">
                                         <div class="char-progress"><div class="char-fill" id="nameCharFill"></div></div>
                                         <span class="char-count"><span id="nameCharCount">0</span>/80</span>
@@ -1224,40 +1244,52 @@
                             <!-- Lieu -->
                             <div class="input-group">
                                 <label for="eventLocation" class="input-label"><i class="fas fa-map-marker-alt"></i> Lieu *</label>
-                                <input type="text" id="eventLocation" class="input-field" placeholder="Ex: Stade de France, Paris" maxlength="80" required>
+                                <input type="text" id="eventLocation" class="input-field" placeholder="Ex: Stade de France" maxlength="80" required>
                                 <div class="input-hint">
-                                    <span>Requis • Max 80</span>
+                                    <span>Max 80</span>
                                     <div class="char-counter">
                                         <div class="char-progress"><div class="char-fill" id="locationCharFill"></div></div>
                                         <span class="char-count"><span id="locationCharCount">0</span>/80</span>
                                     </div>
                                 </div>
                             </div>
-                            <!-- Prix (prend toute la largeur) -->
+                            <!-- Prix -->
                             <div class="input-group">
                                 <label for="eventPrice" class="input-label"><i class="fas fa-tag"></i> Prix</label>
                                 <input type="text" id="eventPrice" class="input-field" placeholder="Ex: Gratuit, 50€" maxlength="30">
                                 <div class="input-hint">
-                                    <span>Optionnel • Max 30</span>
+                                    <span>Max 30</span>
                                     <div class="char-counter">
                                         <div class="char-progress"><div class="char-fill" id="priceCharFill"></div></div>
                                         <span class="char-count"><span id="priceCharCount">0</span>/30</span>
                                     </div>
                                 </div>
                             </div>
-                            <!-- Date d'expiration -->
+                            <!-- Statut -->
                             <div class="input-group">
-                                <label for="eventExpiry" class="input-label"><i class="fas fa-calendar-times"></i> Date d'expiration</label>
-                                <input type="date" id="eventExpiry" class="input-field" min="">
-                                <div class="input-hint">
-                                    <span>Optionnel • Après cette date, le QR code sera invalide</span>
-                                </div>
+                                <label for="eventStatus" class="input-label"><i class="fas fa-star"></i> Statut</label>
+                                <select id="eventStatus" class="input-field">
+                                    <option value="Standard">Standard</option>
+                                    <option value="VIP">VIP</option>
+                                    <option value="VVIP">VVIP</option>
+                                    <option value="Premium">Premium</option>
+                                    <option value="Regular">Regular</option>
+                                </select>
+                            </div>
+                            <!-- Date début -->
+                            <div class="input-group">
+                                <label for="eventStart" class="input-label"><i class="fas fa-calendar-alt"></i> Début</label>
+                                <input type="date" id="eventStart" class="input-field">
+                            </div>
+                            <!-- Date fin -->
+                            <div class="input-group">
+                                <label for="eventEnd" class="input-label"><i class="fas fa-calendar-times"></i> Fin</label>
+                                <input type="date" id="eventEnd" class="input-field">
                             </div>
                         </div>
 
-                        <!-- Indicateur taille et Aperçu QR côte à côte sur desktop -->
+                        <!-- Indicateur taille + aperçu -->
                         <div class="qr-row">
-                            <!-- Indicateur taille -->
                             <div class="data-size-indicator">
                                 <div class="size-indicator">
                                     <i class="fas fa-database fa-lg" style="color: var(--color-primary-light);"></i>
@@ -1274,8 +1306,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Aperçu QR -->
                             <div class="qr-preview-container">
                                 <div class="qr-preview-header">
                                     <h3 class="qr-preview-title"><i class="fas fa-eye"></i> Aperçu</h3>
@@ -1292,7 +1322,9 @@
                                         <div class="qr-info-item"><span class="qr-info-label">Événement</span><span class="qr-info-value" id="previewEventName">---</span></div>
                                         <div class="qr-info-item"><span class="qr-info-label">Prix</span><span class="qr-info-value" id="previewPrice">---</span></div>
                                         <div class="qr-info-item"><span class="qr-info-label">Lieu</span><span class="qr-info-value" id="previewLocation">---</span></div>
-                                        <div class="qr-info-item"><span class="qr-info-label">Expiration</span><span class="qr-info-value" id="previewExpiry">---</span></div>
+                                        <div class="qr-info-item"><span class="qr-info-label">Statut</span><span class="qr-info-value" id="previewStatus">---</span></div>
+                                        <div class="qr-info-item"><span class="qr-info-label">Début</span><span class="qr-info-value" id="previewStart">---</span></div>
+                                        <div class="qr-info-item"><span class="qr-info-label">Fin</span><span class="qr-info-value" id="previewEnd">---</span></div>
                                     </div>
                                     <small>ID: <span id="previewEventId" style="color: var(--color-primary-light);">---</span> | Taille: <span id="previewDataSize">0</span> caractères</small>
                                 </div>
@@ -1308,7 +1340,6 @@
                                     <p style="margin:0; color:var(--color-text-secondary); font-size:0.875rem;">Générez plusieurs QR codes avec le même code secret</p>
                                 </div>
                             </div>
-                            <!-- Disposition desktop pour les contrôles et stats -->
                             <div class="bulk-desktop-row">
                                 <div class="bulk-controls">
                                     <label style="display:block; margin-bottom:0.5rem; font-weight:600;"><i class="fas fa-copy"></i> Quantité</label>
@@ -1339,20 +1370,57 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="bulk-actions">
+                            <div class="bulk-actions" style="display:flex; gap:1rem; margin-top:2rem;">
                                 <button class="btn btn-primary" id="generateBulkBtn"><i class="fas fa-bolt"></i> Générer en Lot</button>
                                 <button class="btn btn-success" id="downloadBulkBtn" style="display:none;"><i class="fas fa-file-pdf"></i> Télécharger PDF</button>
+                                <button class="btn btn-primary" id="downloadBulkJpgBtn" style="display:none;"><i class="fas fa-file-image"></i> Télécharger JPG (ZIP)</button>
                                 <button class="btn btn-secondary" id="previewBulkBtn" style="display:none;"><i class="fas fa-eye"></i> Aperçu</button>
                             </div>
                             <div id="bulkPreviewContainer" class="bulk-preview-container"></div>
                         </div>
 
                         <!-- Actions principales -->
-                        <div style="display:flex; gap:1rem; margin-top:2rem;">
+                        <div style="display:flex; gap:1rem; margin-top:2rem; margin-bottom:2rem;">
                             <button class="btn btn-primary" id="generateBtn" style="flex:1;"><i class="fas fa-qrcode"></i> Générer QR Code</button>
                             <button class="btn btn-secondary" id="downloadBtn" style="display:none;"><i class="fas fa-download"></i> Télécharger</button>
                             <button class="btn btn-secondary" id="clearFormBtn"><i class="fas fa-redo"></i> Effacer</button>
                         </div>
+                    </div>
+                </section>
+
+                <!-- PAGE STATISTIQUES -->
+                <section class="page" id="statsPage">
+                    <div class="page-header">
+                        <h2 class="page-title"><i class="fas fa-chart-bar"></i> Statistiques de génération</h2>
+                        <p class="page-subtitle">Analysez l'utilisation de vos QR codes</p>
+                    </div>
+                    <div class="stats-filters">
+                        <button class="filter-btn active" data-filter="today">Aujourd'hui</button>
+                        <button class="filter-btn" data-filter="week">Cette semaine</button>
+                        <button class="filter-btn" data-filter="month">Ce mois</button>
+                        <button class="filter-btn" data-filter="all">Tout</button>
+                    </div>
+                    <div class="stats-cards">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statTotal">0</div>
+                            <div class="stat-label">QR générés</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statUsed">0</div>
+                            <div class="stat-label">Utilisés (scannés)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statUnused">0</div>
+                            <div class="stat-label">Non utilisés</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statBatches">0</div>
+                            <div class="stat-label">Lots générés</div>
+                        </div>
+                    </div>
+                    <h3 style="margin: 2rem 0 1rem;">Dernières générations</h3>
+                    <div class="generations-list" id="generationsList">
+                        <div class="empty-history">Aucune génération récente</div>
                     </div>
                 </section>
 
@@ -1388,7 +1456,6 @@
                                     <button class="btn btn-secondary" id="refreshCodeBtn" style="flex:1;"><i class="fas fa-sync-alt"></i> Récupérer</button>
                                     <button class="btn btn-primary" id="copyCodeBtn" style="flex:1;"><i class="fas fa-copy"></i> Copier</button>
                                 </div>
-                                <!-- Nouveau bouton pour générer un code secret pour un nouvel événement -->
                                 <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
                                     <button class="btn btn-primary" id="newEventBtn" style="flex:1;"><i class="fas fa-calendar-plus"></i> Nouvel événement</button>
                                 </div>
@@ -1419,7 +1486,6 @@
                                 <button class="btn btn-danger" id="clearStorageBtn" style="width:100%; margin-top:0.5rem;">
                                     <i class="fas fa-trash"></i> Nettoyer le stockage
                                 </button>
-                                <!-- Bouton de déconnexion -->
                                 <button class="btn btn-secondary" id="logoutBtn" style="width:100%; margin-top:1rem;">
                                     <i class="fas fa-sign-out-alt"></i> Déconnexion
                                 </button>
@@ -1451,7 +1517,7 @@
                                 <div id="connectionQRContainer" style="display:none; margin-top:1.5rem;">
                                     <div class="connection-qr-container">
                                         <div class="connection-qr-header">
-                                            <i class="fas fa-shield-alt"></i>
+                                            <i class="fas fa-ticket-alt"></i>
                                             <h4 style="margin:0;">QR Code de Connexion</h4>
                                         </div>
                                         <p style="color:var(--color-text-secondary); font-size:0.875rem; margin-bottom:1rem;">
@@ -1480,100 +1546,83 @@
             </main>
         </div>
 
-        <!-- Navigation bas (mobile) -->
-        <nav class="bottom-nav" id="bottomNav">
-            <button class="nav-btn active" data-page="generatePage">
-                <div class="nav-icon"><i class="fas fa-qrcode"></i></div>
-                <span class="nav-label">Générer</span>
-            </button>
-            <button class="nav-btn" data-page="settingsPage">
-                <div class="nav-icon"><i class="fas fa-cog"></i></div>
-                <span class="nav-label">Paramètres</span>
-            </button>
-        </nav>
-    </div>
-
-    <!-- MODAL DE VÉRIFICATION PIN POUR PARAMÈTRES -->
-    <div class="pin-modal" id="pinModal">
-        <div class="pin-modal-content">
-            <div class="pin-modal-header">
-                <h3><i class="fas fa-lock"></i> Accès sécurisé</h3>
-                <p>Veuillez saisir votre code PIN pour accéder aux paramètres</p>
-            </div>
-            <div class="pin-container">
-                <div class="pin-inputs" id="modalPinInputs">
-                    <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]" autofocus>
-                    <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
-                    <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
-                    <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
+        <!-- MODAL DE VÉRIFICATION PIN -->
+        <div class="pin-modal" id="pinModal">
+            <div class="pin-modal-content">
+                <div class="pin-modal-header">
+                    <h3><i class="fas fa-lock"></i> Accès sécurisé</h3>
+                    <p>Veuillez saisir votre code PIN pour accéder aux paramètres</p>
                 </div>
+                <div class="pin-container">
+                    <div class="pin-inputs" id="modalPinInputs">
+                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]" autofocus>
+                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
+                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
+                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
+                    </div>
+                </div>
+                <div class="pin-modal-actions">
+                    <button class="btn btn-secondary" id="cancelPinModal">Annuler</button>
+                    <button class="btn btn-primary" id="confirmPinModal">Valider</button>
+                </div>
+                <div class="pin-modal-error" id="pinModalError">Code PIN incorrect</div>
             </div>
-            <div class="pin-modal-actions">
-                <button class="btn btn-secondary" id="cancelPinModal">Annuler</button>
-                <button class="btn btn-primary" id="confirmPinModal">Valider</button>
-            </div>
-            <div class="pin-modal-error" id="pinModalError">Code PIN incorrect</div>
         </div>
     </div>
 
-    <!-- Scripts nécessaires -->
+    <!-- Scripts -->
     <script src="./js/qrcode.min.js"></script>
     <script src="./js/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="./js/database.js"></script>
     <script src="./js/auth.js"></script>
     <script src="./js/bulk-generator.js"></script>
     <script src="./js/app.js"></script>
-
-    <!-- Script pour afficher le code de secours dynamiquement -->
     <script>
-        // Ce script doit être exécuté après le chargement de AuthManager
-        // On attend que l'app soit initialisée
-        document.addEventListener('DOMContentLoaded', () => {
-            // On vérifie périodiquement si auth est disponible
-            const checkAuth = setInterval(() => {
-                if (window.qrGuardianGenerator && window.qrGuardianGenerator.auth) {
-                    clearInterval(checkAuth);
-                    const auth = window.qrGuardianGenerator.auth;
-                    const backupCode = auth.getBackupPin();
-                    const backupContainer = document.getElementById('backupCodeContainer');
-                    const backupInput = document.getElementById('backupCodeInput');
-                    if (backupContainer && backupInput) {
-                        backupInput.value = backupCode;
-                        backupContainer.style.display = 'block';
-                    }
-                }
-            }, 100);
-        });
+        // Gestion du menu hamburger
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.getElementById('hamburgerBtn');
+            const sideMenu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('overlay');
+            const closeMenu = document.getElementById('closeMenuBtn');
 
-        // Copier le code de secours
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('#copyBackupCodeBtn')) {
-                const input = document.getElementById('backupCodeInput');
-                if (input) {
-                    navigator.clipboard.writeText(input.value).then(() => {
-                        // Notification simple
-                        const notification = document.createElement('div');
-                        notification.className = 'notification success';
-                        notification.innerHTML = `
-                            <div class="notification-header">
-                                <i class="fas fa-check-circle"></i>
-                                <h4>Code copié</h4>
-                            </div>
-                            <p>Le code de secours a été copié dans le presse-papier.</p>
-                        `;
-                        document.body.appendChild(notification);
-                        setTimeout(() => notification.classList.add('show'), 10);
-                        setTimeout(() => {
-                            notification.classList.remove('show');
-                            setTimeout(() => notification.remove(), 300);
-                        }, 3000);
-                    }).catch(err => console.error('Erreur de copie:', err));
-                }
+            if (hamburger && sideMenu && overlay && closeMenu) {
+                hamburger.addEventListener('click', () => {
+                    sideMenu.classList.add('open');
+                    overlay.classList.add('show');
+                });
+                closeMenu.addEventListener('click', () => {
+                    sideMenu.classList.remove('open');
+                    overlay.classList.remove('show');
+                });
+                overlay.addEventListener('click', () => {
+                    sideMenu.classList.remove('open');
+                    overlay.classList.remove('show');
+                });
+            }
+
+            // Copie du code de secours
+            const copyBtn = document.getElementById('copyBackupCodeBtn');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    const input = document.getElementById('backupCodeInput');
+                    if (input) {
+                        navigator.clipboard.writeText(input.value).then(() => {
+                            const notif = document.createElement('div');
+                            notif.className = 'notification success';
+                            notif.innerHTML = '<div class="notification-header"><i class="fas fa-check-circle"></i><h4>Code copié</h4></div><p>Le code de secours a été copié.</p>';
+                            document.body.appendChild(notif);
+                            setTimeout(() => notif.classList.add('show'), 10);
+                            setTimeout(() => {
+                                notif.classList.remove('show');
+                                setTimeout(() => notif.remove(), 300);
+                            }, 3000);
+                        });
+                    }
+                });
             }
         });
     </script>
-
-    <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
