@@ -1,5 +1,5 @@
 // bulk-generator.js - Génération en lot pour QRGuardian Pro
-// Version PDF uniquement, avec spinner et chargement auto de jsPDF (sans jauge PDF)
+// Version PDF et JPG/ZIP, avec spinner et chargement auto de jsPDF
 class BulkQRGenerator {
     constructor(qrGuardianApp) {
         this.app = qrGuardianApp;
@@ -22,14 +22,21 @@ class BulkQRGenerator {
             return null;
         }
 
-        // Récupérer la date d'expiration
-        const expiryInput = document.getElementById('eventExpiry');
-        let expiry = null;
-        if (expiryInput && expiryInput.value) {
-            const date = new Date(expiryInput.value);
-            date.setHours(23, 59, 59, 999);
-            expiry = date.getTime();
+        // Récupérer les dates et le statut
+        const startInput = document.getElementById('eventStart');
+        const endInput = document.getElementById('eventEnd');
+        let start = null, end = null;
+        if (startInput && startInput.value) {
+            const date = new Date(startInput.value);
+            date.setHours(0, 0, 0, 0);
+            start = date.getTime();
         }
+        if (endInput && endInput.value) {
+            const date = new Date(endInput.value);
+            date.setHours(23, 59, 59, 999);
+            end = date.getTime();
+        }
+        const status = document.getElementById('eventStatus')?.value || 'Standard';
 
         this.isBatchGenerating = true;
         this.currentBatch = [];
@@ -59,20 +66,22 @@ class BulkQRGenerator {
                         n: eventName,
                         p: price,
                         l: eventLocation,
+                        s: status,
                         ts: baseTimestamp + i,
                         id: this.app.generateEventId(),
                         sc: this.app.getSecurityCode(),
                         series: i + 1,
                         total: count,
-                        exp: expiry // ajout de l'expiration
+                        start: start,
+                        end: end
                     };
 
-                    const qrCodeBlob = await this.generateQRCodeToBlob(eventData);
+                    // Générer l'image du QR code avec fond blanc et padding
+                    const qrImageDataURL = await this.generateQRImageWithPadding(eventData, 512); // Taille Full HD
                     batchResults.push({
                         ...eventData,
-                        qrCodeBlob,
-                        fileName: `${eventName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${eventData.series}_${eventData.id}.png`,
-                        imageDataURL: await this.blobToDataURL(qrCodeBlob)
+                        imageDataURL: qrImageDataURL,
+                        fileName: `${eventName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${eventData.series}_${eventData.id}.jpg`
                     });
 
                     this.showBatchProgress(i + 1, count);
@@ -106,8 +115,8 @@ class BulkQRGenerator {
         }
     }
 
-    // ===== GÉNÉRATION D'UN QR CODE SOUS FORME DE BLOB =====
-    async generateQRCodeToBlob(eventData) {
+    // ===== GÉNÉRATION D'UNE IMAGE QR AVEC FOND BLANC ET PADDING =====
+    async generateQRImageWithPadding(eventData, size = 512) {
         return new Promise((resolve, reject) => {
             try {
                 const qrContent = `https://qrguardian.app/e?${this.encodeToUrlParams(eventData)}`;
@@ -118,9 +127,9 @@ class BulkQRGenerator {
 
                 new QRCode(tempDiv, {
                     text: qrContent,
-                    width: 256,
-                    height: 256,
-                    colorDark: "#1e3a8a",
+                    width: size,
+                    height: size,
+                    colorDark: "#0a1a3a", // Couleur plus foncée
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.H
                 });
@@ -128,10 +137,22 @@ class BulkQRGenerator {
                 setTimeout(() => {
                     const canvas = tempDiv.querySelector('canvas');
                     if (canvas) {
-                        canvas.toBlob((blob) => {
-                            document.body.removeChild(tempDiv);
-                            resolve(blob);
-                        }, 'image/png', 1.0);
+                        // Créer un nouveau canvas avec fond blanc et padding
+                        const padding = 8; // padding autour du QR
+                        const finalSize = size + 2 * padding;
+                        const finalCanvas = document.createElement('canvas');
+                        finalCanvas.width = finalSize;
+                        finalCanvas.height = finalSize;
+                        const ctx = finalCanvas.getContext('2d');
+                        // Fond blanc
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, finalSize, finalSize);
+                        // Dessiner le QR centré
+                        ctx.drawImage(canvas, padding, padding, size, size);
+                        // Convertir en dataURL
+                        const dataURL = finalCanvas.toDataURL('image/jpeg', 0.95);
+                        document.body.removeChild(tempDiv);
+                        resolve(dataURL);
                     } else {
                         document.body.removeChild(tempDiv);
                         reject(new Error('Canvas non généré'));
@@ -149,21 +170,13 @@ class BulkQRGenerator {
         if (data.n) params.append('n', data.n.substring(0, 80));
         if (data.p) params.append('p', data.p.substring(0, 30));
         if (data.l) params.append('l', data.l.substring(0, 80));
+        if (data.s) params.append('s', data.s.substring(0, 10));
         if (data.ts) params.append('ts', data.ts);
         if (data.id) params.append('id', data.id);
         if (data.sc) params.append('sc', data.sc);
-        if (data.exp) params.append('exp', data.exp); // ajout
+        if (data.start) params.append('start', data.start);
+        if (data.end) params.append('end', data.end);
         return params.toString();
-    }
-
-    // ===== CONVERTIR BLOB EN DATA URL =====
-    blobToDataURL(blob) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
     }
 
     // ===== AFFICHAGE DE LA PROGRESSION (GÉNÉRATION) =====
@@ -196,11 +209,13 @@ class BulkQRGenerator {
     showBatchActions() {
         const batchActions = document.getElementById('batchActions');
         const downloadPdfBtn = document.getElementById('downloadBulkBtn');
+        const downloadJpgBtn = document.getElementById('downloadBulkJpgBtn');
 
         if (batchActions) batchActions.style.display = 'block';
         if (downloadPdfBtn) downloadPdfBtn.style.display = 'flex';
+        if (downloadJpgBtn) downloadJpgBtn.style.display = 'flex';
 
-        const estimatedSize = Math.round(this.currentBatch.length * 15);
+        const estimatedSize = Math.round(this.currentBatch.length * 50); // Estimation plus réaliste pour JPG
         const zipSizeElement = document.getElementById('batchZipSize');
         if (zipSizeElement) zipSizeElement.textContent = `${estimatedSize} KB estimés`;
     }
@@ -296,7 +311,7 @@ class BulkQRGenerator {
                 img.src = qr.imageDataURL;
                 await new Promise(resolve => { img.onload = resolve; });
 
-                pdf.addImage(img, 'PNG', x, y, qrSize, qrSize);
+                pdf.addImage(img, 'JPEG', x, y, qrSize, qrSize);
                 pdf.setFontSize(8);
                 pdf.setTextColor(100, 100, 100);
                 pdf.text(qr.id, x + qrSize / 2, y + qrSize + 5, { align: 'center' });
@@ -319,15 +334,69 @@ class BulkQRGenerator {
         }
     }
 
+    // ===== TÉLÉCHARGER EN TANT QUE ZIP (JPG) =====
+    async downloadBatchAsJPGZip() {
+        if (!this.currentBatch || this.currentBatch.length === 0) {
+            this.app.showNotification('Lot vide', 'Aucun QR code à exporter.', 'warning');
+            return;
+        }
+
+        const zipBtn = document.getElementById('downloadBulkJpgBtn');
+        const originalBtnHTML = zipBtn ? zipBtn.innerHTML : '';
+        if (zipBtn) {
+            zipBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création ZIP...';
+            zipBtn.disabled = true;
+        }
+
+        try {
+            // Vérifier que JSZip est disponible
+            if (typeof JSZip === 'undefined') {
+                throw new Error('JSZip non chargé. Vérifiez la bibliothèque.');
+            }
+
+            const zip = new JSZip();
+            const folder = zip.folder('QRGuardian_Lot');
+
+            for (let i = 0; i < this.currentBatch.length; i++) {
+                const qr = this.currentBatch[i];
+                // Extraire le dataURL en blob
+                const response = await fetch(qr.imageDataURL);
+                const blob = await response.blob();
+                // Nom du fichier : nom_qrcode - (Id: identifiant).jpg
+                const fileName = `${qr.n.replace(/[^a-z0-9]/gi, '_').toLowerCase()} - (Id: ${qr.id}).jpg`;
+                folder.file(fileName, blob, { binary: true });
+            }
+
+            // Générer le zip
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(zipBlob);
+            link.download = `QRGuardian_Lot_${this.currentBatch.length}_${Date.now()}.zip`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+
+            this.app.showNotification('ZIP généré', 'Le fichier ZIP contenant les JPG a été téléchargé.', 'success');
+        } catch (error) {
+            console.error('❌ Erreur ZIP:', error);
+            this.app.showNotification('Erreur', error.message || 'Échec de la création du ZIP.', 'error');
+        } finally {
+            if (zipBtn) {
+                zipBtn.innerHTML = originalBtnHTML;
+                zipBtn.disabled = false;
+            }
+        }
+    }
+
     // ===== CRÉATION DU CSV =====
     createBatchCSV() {
-        const headers = ["N°", "ID", "Événement", "Prix", "Lieu", "Code Secret"];
+        const headers = ["N°", "ID", "Événement", "Prix", "Lieu", "Statut", "Code Secret"];
         const rows = this.currentBatch.map(qr => [
             qr.series,
             qr.id,
             qr.n || '',
             qr.p || '',
             qr.l || '',
+            qr.s || 'Standard',
             qr.sc || ''
         ]);
         return [headers.join(","), ...rows.map(row => row.map(cell => `"${cell}"`).join(","))].join("\n");
@@ -343,6 +412,7 @@ QR codes: ${this.currentBatch.length}
 Événement: ${first?.n || ''}
 Lieu: ${first?.l || ''}
 Prix: ${first?.p || 'Gratuit'}
+Statut: ${first?.s || 'Standard'}
 Code secret UNIQUE: ${first?.sc || ''}
 
 - Chaque QR code contient le même code secret.
@@ -362,7 +432,8 @@ Code secret UNIQUE: ${first?.sc || ''}
                 generated_at: new Date().toISOString(),
                 event_name: first?.n || '',
                 event_location: first?.l || '',
-                event_price: first?.p || ''
+                event_price: first?.p || '',
+                event_status: first?.s || 'Standard'
             },
             security: {
                 system: "Unique Security Code",
@@ -510,7 +581,7 @@ Code secret UNIQUE: ${first?.sc || ''}
     getBatchStats() {
         return {
             count: this.currentBatch.length,
-            size: Math.round(this.currentBatch.length * 15),
+            size: Math.round(this.currentBatch.length * 50),
             isGenerating: this.isBatchGenerating,
             progress: this.batchProgress
         };
