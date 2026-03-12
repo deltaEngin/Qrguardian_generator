@@ -1,4 +1,4 @@
-// QRGuardian Generator - Version avec authentification, déconnexion et navbar sans flash
+// QRGuardian Generator - Version complète avec authentification, statistiques, menu hamburger et jauges corrigées
 class QRGuardianGenerator {
     constructor() {
         this.currentPage = 'generatePage';
@@ -14,15 +14,36 @@ class QRGuardianGenerator {
         this.pendingPage = null; // pour stocker la page à afficher après validation du PIN
     }
 
+    // ===== INITIALISATION =====
+    async loadRequiredLibraries() {
+        return new Promise((resolve) => {
+            if (typeof QRCode !== 'undefined') {
+                resolve();
+                return;
+            }
+            this.showNotification('Chargement', 'Initialisation...', 'info');
+            setTimeout(resolve, 1500);
+        });
+    }
+
     async init() {
         try {
             await this.loadRequiredLibraries();
+
+            // Vérification de la présence de Database
             if (typeof Database !== 'undefined') {
                 try {
                     await Database.init();
                 } catch (dbError) {
                     console.warn('Base de données non disponible:', dbError);
                 }
+            } else {
+                console.warn('Database non défini');
+            }
+
+            // Vérification de AuthManager
+            if (typeof AuthManager === 'undefined') {
+                throw new Error('AuthManager est introuvable. Vérifiez que auth.js est bien chargé.');
             }
 
             this.auth = new AuthManager();
@@ -36,19 +57,120 @@ class QRGuardianGenerator {
 
             this.setupAuthEvents();
             this.setupTheme();
-            this.setupPinModal(); // Initialiser le modal
+            this.setupPinModal();
+            this.setupHamburger();
+            this.setupStatsPage();
 
         } catch (error) {
             console.error('❌ Erreur initialisation:', error);
-            this.showNotification('Erreur d\'initialisation', 'Veuillez rafraîchir la page.', 'error');
+            // Afficher une notification même si showNotification n'est pas encore définie ? 
+            // On utilise un fallback
+            if (typeof this.showNotification === 'function') {
+                this.showNotification('Erreur d\'initialisation', error.message, 'error');
+            } else {
+                alert('Erreur : ' + error.message);
+            }
+        }
+    }
+
+    // ===== MENU HAMBURGER =====
+    setupHamburger() {
+        const sideMenu = document.getElementById('sideMenu');
+        const overlay = document.getElementById('overlay');
+        const hamburger = document.getElementById('hamburgerBtn');
+        const closeMenu = document.getElementById('closeMenuBtn');
+
+        if (!sideMenu || !overlay || !hamburger || !closeMenu) {
+            console.warn('Éléments du menu hamburger manquants');
+            return;
+        }
+
+        const openMenu = () => {
+            sideMenu.classList.add('open');
+            overlay.classList.add('show');
+        };
+        const closeMenuFunc = () => {
+            sideMenu.classList.remove('open');
+            overlay.classList.remove('show');
+        };
+
+        hamburger.addEventListener('click', openMenu);
+        closeMenu.addEventListener('click', closeMenuFunc);
+        overlay.addEventListener('click', closeMenuFunc);
+
+        document.querySelectorAll('.side-menu .nav-btn').forEach(btn => {
+            btn.addEventListener('click', closeMenuFunc);
+        });
+    }
+
+    // ===== PAGE STATISTIQUES =====
+    setupStatsPage() {
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        if (filterBtns.length === 0) {
+            console.warn('Boutons de filtre statistiques non trouvés');
+            return;
+        }
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                const filter = e.currentTarget.dataset.filter;
+                this.loadStatistics(filter);
+            });
+        });
+    }
+
+    async loadStatistics(filter = 'all') {
+        try {
+            const generations = await Database.getGenerations(0); // toutes
+            const batches = await Database.getBatches(0);
+            const now = new Date();
+            const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+            const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay())).setHours(0,0,0,0);
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+            let filtered = generations;
+            if (filter === 'today') {
+                filtered = generations.filter(g => new Date(g.timestamp).getTime() >= startOfDay);
+            } else if (filter === 'week') {
+                filtered = generations.filter(g => new Date(g.timestamp).getTime() >= startOfWeek);
+            } else if (filter === 'month') {
+                filtered = generations.filter(g => new Date(g.timestamp).getTime() >= startOfMonth);
+            }
+
+            const total = filtered.length;
+            const used = filtered.filter(g => g.used).length;
+            const unused = total - used;
+            const totalBatches = batches.length;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statUsed').textContent = used;
+            document.getElementById('statUnused').textContent = unused;
+            document.getElementById('statBatches').textContent = totalBatches;
+
+            // Afficher les 10 dernières générations
+            const list = document.getElementById('generationsList');
+            if (!list) return;
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="empty-history">Aucune génération récente</div>';
+                return;
+            }
+            const recent = filtered.slice(0, 10);
+            list.innerHTML = recent.map(g => `
+                <div class="generation-item">
+                    <span><i class="fas fa-qrcode"></i> ${g.eventName || 'QR code'}</span>
+                    <span>${new Date(g.timestamp).toLocaleDateString()}</span>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Erreur chargement statistiques:', error);
         }
     }
 
     // ===== GESTION DE L'AUTHENTIFICATION =====
     showLoginPage() {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        const bottomNav = document.getElementById('bottomNav');
-        if (bottomNav) bottomNav.classList.remove('visible');
+        document.body.classList.remove('authenticated'); // cacher sidebar et menu
 
         const loginPage = document.getElementById('loginPage');
         if (loginPage) loginPage.classList.add('active');
@@ -66,8 +188,7 @@ class QRGuardianGenerator {
 
     showSignupPage() {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        const bottomNav = document.getElementById('bottomNav');
-        if (bottomNav) bottomNav.classList.remove('visible');
+        document.body.classList.remove('authenticated');
 
         const loginPage = document.getElementById('loginPage');
         if (loginPage) loginPage.classList.add('active');
@@ -87,11 +208,8 @@ class QRGuardianGenerator {
         const loginPage = document.getElementById('loginPage');
         if (loginPage) loginPage.classList.remove('active');
 
-        // Ajouter la classe authenticated au body pour afficher la sidebar et la bottom-nav
+        // Ajouter la classe authenticated au body pour afficher la sidebar et le menu hamburger
         document.body.classList.add('authenticated');
-
-        const bottomNav = document.getElementById('bottomNav');
-        if (bottomNav) bottomNav.classList.add('visible');
 
         await this.loadOrCreateSecurityCode();
 
@@ -109,16 +227,17 @@ class QRGuardianGenerator {
     }
 
     async logout() {
-        const confirmLogout = confirm('Êtes-vous sûr de vouloir vous déconnecter ?');
-        if (!confirmLogout) return;
+        const confirmed = await this.showConfirmDialog(
+            'Déconnexion',
+            'Êtes-vous sûr de vouloir vous déconnecter ?',
+            'Déconnecter',
+            'Annuler'
+        );
+        if (!confirmed) return;
 
         this.auth.logout();
 
-        // Retirer la classe authenticated du body
         document.body.classList.remove('authenticated');
-
-        const bottomNav = document.getElementById('bottomNav');
-        if (bottomNav) bottomNav.classList.remove('visible');
 
         this.bulkGenerator = null;
         this.UNIQUE_SECURITY_CODE = null;
@@ -240,6 +359,11 @@ class QRGuardianGenerator {
         const inputs = document.querySelectorAll('#modalPinInputs .pin-digit');
         const errorDiv = document.getElementById('pinModalError');
 
+        if (!modal || !cancelBtn || !confirmBtn || inputs.length === 0) {
+            console.warn('Modal PIN non trouvé');
+            return;
+        }
+
         const closeModal = () => {
             modal.classList.remove('show');
             inputs.forEach(i => i.value = '');
@@ -259,12 +383,10 @@ class QRGuardianGenerator {
 
             const result = await this.auth.login(pin);
             if (result.success) {
-                // Récupérer la page en attente avant de fermer le modal
                 const targetPage = this.pendingPage;
                 if (targetPage) {
                     this.switchPage(targetPage);
                 }
-                // Fermer le modal après le changement de page
                 closeModal();
             } else {
                 errorDiv.textContent = 'Code PIN incorrect';
@@ -274,7 +396,6 @@ class QRGuardianGenerator {
             }
         });
 
-        // Gestion de la saisie dans le modal
         inputs.forEach((input, index) => {
             input.addEventListener('input', () => {
                 if (input.value.length === 1 && index < inputs.length - 1) {
@@ -288,7 +409,6 @@ class QRGuardianGenerator {
             });
         });
 
-        // Fermeture en cliquant à l'extérieur
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 closeModal();
@@ -299,23 +419,130 @@ class QRGuardianGenerator {
     openPinModalForSettings() {
         const modal = document.getElementById('pinModal');
         const inputs = document.querySelectorAll('#modalPinInputs .pin-digit');
+        if (!modal) return;
         inputs.forEach(i => i.value = '');
         document.getElementById('pinModalError').classList.remove('show');
         modal.classList.add('show');
         inputs[0].focus();
     }
 
-    async loadRequiredLibraries() {
-        return new Promise((resolve) => {
-            if (typeof QRCode !== 'undefined') {
-                resolve();
-                return;
+    // ===== THÈME =====
+    setupTheme() {
+        const themeToggle = document.getElementById('themeToggle');
+        if (!themeToggle) return;
+        const savedTheme = localStorage.getItem('qrguardian_theme') || 'dark';
+        const applyTheme = (isLight) => {
+            document.body.classList.toggle('light-theme', isLight);
+            document.body.classList.toggle('dark-theme', !isLight);
+            const icon = themeToggle.querySelector('i');
+            if (icon) {
+                icon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
             }
-            this.showNotification('Chargement', 'Initialisation...', 'info');
-            setTimeout(resolve, 1500);
+        };
+        applyTheme(savedTheme === 'light');
+        themeToggle.addEventListener('click', () => {
+            const isLight = document.body.classList.contains('light-theme');
+            localStorage.setItem('qrguardian_theme', isLight ? 'dark' : 'light');
+            applyTheme(!isLight);
+            this.showNotification('Thème ' + (isLight ? 'sombre' : 'clair') + ' activé', '', 'info');
         });
     }
 
+    // ===== NAVIGATION =====
+    setupNavigation() {
+        document.querySelectorAll('.nav-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const pageId = e.currentTarget.getAttribute('data-page');
+                
+                if (pageId === 'settingsPage') {
+                    this.pendingPage = pageId;
+                    this.openPinModalForSettings();
+                } else {
+                    this.switchPage(pageId);
+                }
+            });
+        });
+    }
+
+    switchPage(pageId) {
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        const targetPage = document.getElementById(pageId);
+        if (targetPage) targetPage.classList.add('active');
+        else { console.error('❌ Page non trouvée:', pageId); return; }
+        const targetBtn = document.querySelector(`[data-page="${pageId}"]`);
+        if (targetBtn) targetBtn.classList.add('active');
+        this.currentPage = pageId;
+
+        switch (pageId) {
+            case 'generatePage':
+                this.updateFormPreview();
+                this.updateDataSizeIndicator();
+                if (this.bulkGenerator && this.bulkGenerator.isBatchGenerating) {
+                    this.bulkGenerator.stopBatchGeneration();
+                }
+                break;
+            case 'statsPage':
+                this.loadStatistics('all');
+                break;
+            case 'settingsPage':
+                this.updateSettings();
+                break;
+        }
+    }
+
+    // ===== BOUTON RAFRAÎCHIR =====
+    setupRefreshButton() {
+        const refreshBtn = document.getElementById('refreshBtn');
+        if (!refreshBtn) return;
+        refreshBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const icon = refreshBtn.querySelector('i');
+            if (icon) icon.classList.add('fa-spin');
+            if (this.currentPage === 'generatePage') this.refreshGeneratePage();
+            else if (this.currentPage === 'statsPage') this.refreshStatsPage();
+            else if (this.currentPage === 'settingsPage') this.refreshSettingsPage();
+            setTimeout(() => { if (icon) icon.classList.remove('fa-spin'); }, 1000);
+        });
+    }
+
+    refreshGeneratePage() {
+        this.clearForm();
+        const bulkPreviewContainer = document.getElementById('bulkPreviewContainer');
+        if (bulkPreviewContainer) {
+            bulkPreviewContainer.innerHTML = '';
+            bulkPreviewContainer.style.display = 'none';
+        }
+        const downloadBulkBtn = document.getElementById('downloadBulkBtn');
+        const downloadBulkJpgBtn = document.getElementById('downloadBulkJpgBtn');
+        const previewBulkBtn = document.getElementById('previewBulkBtn');
+        if (downloadBulkBtn) downloadBulkBtn.style.display = 'none';
+        if (downloadBulkJpgBtn) downloadBulkJpgBtn.style.display = 'none';
+        if (previewBulkBtn) previewBulkBtn.style.display = 'none';
+        const bulkQuantity = document.getElementById('bulkQuantity');
+        const bulkQuantitySlider = document.getElementById('bulkQuantitySlider');
+        if (bulkQuantity) bulkQuantity.value = '1';
+        if (bulkQuantitySlider) bulkQuantitySlider.value = '1';
+        this.updateFormPreview();
+        this.updateDataSizeIndicator();
+        if (this.bulkGenerator) this.bulkGenerator.stopBatchGeneration();
+        this.showNotification('Page Générer rafraîchie', 'Formulaire réinitialisé.', 'success');
+    }
+
+    refreshStatsPage() {
+        this.loadStatistics('all');
+    }
+
+    refreshSettingsPage() {
+        this.updateSettings();
+        this.updateSecurityCodeCount();
+        this.updateStorageUsage();
+        this.updateSecurityCodeDisplay();
+        this.updateConnectionStatus();
+        this.showNotification('Paramètres rafraîchis', 'Statistiques mises à jour.', 'info');
+    }
+
+    // ===== CODE SECRET =====
     async loadOrCreateSecurityCode() {
         try {
             if (typeof Database !== 'undefined' && typeof Database.getSecurityCode === 'function') {
@@ -358,7 +585,6 @@ class QRGuardianGenerator {
         return this.UNIQUE_SECURITY_CODE;
     }
 
-    // Nouvelle méthode pour générer un code secret pour un nouvel événement
     generateNewSecurityCode() {
         const newCode = 'QRG-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '-' + Date.now().toString(36).toUpperCase();
         this.UNIQUE_SECURITY_CODE = newCode;
@@ -368,7 +594,6 @@ class QRGuardianGenerator {
         }
         this.updateSecurityCodeDisplay();
         this.showNotification('Nouveau code secret généré', 'Ce code sera utilisé pour le prochain événement.', 'success');
-        // Fermer le QR de connexion s'il est affiché
         const connectionContainer = document.getElementById('connectionQRContainer');
         if (connectionContainer) connectionContainer.style.display = 'none';
     }
@@ -395,112 +620,7 @@ class QRGuardianGenerator {
         return result;
     }
 
-    setupNavigation() {
-        document.querySelectorAll('.nav-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const pageId = e.currentTarget.getAttribute('data-page');
-                
-                // Si on essaie d'aller vers les paramètres, on demande le PIN
-                if (pageId === 'settingsPage') {
-                    this.pendingPage = pageId;
-                    this.openPinModalForSettings();
-                } else {
-                    this.switchPage(pageId);
-                }
-            });
-        });
-    }
-
-    switchPage(pageId) {
-        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        const targetPage = document.getElementById(pageId);
-        if (targetPage) targetPage.classList.add('active');
-        else { console.error('❌ Page non trouvée:', pageId); return; }
-        const targetBtn = document.querySelector(`[data-page="${pageId}"]`);
-        if (targetBtn) targetBtn.classList.add('active');
-        this.currentPage = pageId;
-
-        switch (pageId) {
-            case 'generatePage':
-                this.updateFormPreview();
-                this.updateDataSizeIndicator();
-                if (this.bulkGenerator && this.bulkGenerator.isBatchGenerating) {
-                    this.bulkGenerator.stopBatchGeneration();
-                }
-                break;
-            case 'settingsPage':
-                this.updateSettings();
-                break;
-        }
-    }
-
-    setupTheme() {
-        const themeToggle = document.getElementById('themeToggle');
-        if (!themeToggle) return;
-        const savedTheme = localStorage.getItem('qrguardian_theme') || 'dark';
-        const applyTheme = (isLight) => {
-            document.body.classList.toggle('light-theme', isLight);
-            document.body.classList.toggle('dark-theme', !isLight);
-            const icon = themeToggle.querySelector('i');
-            if (icon) {
-                icon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
-                icon.style.color = isLight ? '#f59e0b' : '';
-            }
-        };
-        applyTheme(savedTheme === 'light');
-        themeToggle.addEventListener('click', () => {
-            const isLight = document.body.classList.contains('light-theme');
-            localStorage.setItem('qrguardian_theme', isLight ? 'dark' : 'light');
-            applyTheme(!isLight);
-            this.showNotification('Thème ' + (isLight ? 'sombre' : 'clair') + ' activé', '', 'info');
-        });
-    }
-
-    setupRefreshButton() {
-        const refreshBtn = document.getElementById('refreshBtn');
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const icon = refreshBtn.querySelector('i');
-                if (icon) icon.classList.add('fa-spin');
-                if (this.currentPage === 'generatePage') this.refreshGeneratePage();
-                else if (this.currentPage === 'settingsPage') this.refreshSettingsPage();
-                setTimeout(() => { if (icon) icon.classList.remove('fa-spin'); }, 1000);
-            });
-        }
-    }
-
-    refreshGeneratePage() {
-        this.clearForm();
-        const bulkPreviewContainer = document.getElementById('bulkPreviewContainer');
-        if (bulkPreviewContainer) {
-            bulkPreviewContainer.innerHTML = '';
-            bulkPreviewContainer.style.display = 'none';
-        }
-        const downloadBulkBtn = document.getElementById('downloadBulkBtn');
-        const previewBulkBtn = document.getElementById('previewBulkBtn');
-        if (downloadBulkBtn) downloadBulkBtn.style.display = 'none';
-        if (previewBulkBtn) previewBulkBtn.style.display = 'none';
-        const bulkQuantity = document.getElementById('bulkQuantity');
-        const bulkQuantitySlider = document.getElementById('bulkQuantitySlider');
-        if (bulkQuantity) bulkQuantity.value = '1';
-        if (bulkQuantitySlider) bulkQuantitySlider.value = '1';
-        this.updateFormPreview();
-        this.updateDataSizeIndicator();
-        if (this.bulkGenerator) this.bulkGenerator.stopBatchGeneration();
-        this.showNotification('Page Générer rafraîchie', 'Formulaire réinitialisé.', 'success');
-    }
-
-    refreshSettingsPage() {
-        this.updateSettings();
-        this.updateSecurityCodeCount();
-        this.updateStorageUsage();
-        this.updateSecurityCodeDisplay();
-        this.updateConnectionStatus();
-        this.showNotification('Paramètres rafraîchis', 'Statistiques mises à jour.', 'info');
-    }
-
+    // ===== FORMULAIRE GÉNÉRATION =====
     setupGenerateForm() {
         const generateBtn = document.getElementById('generateBtn');
         if (generateBtn) generateBtn.addEventListener('click', (e) => { e.preventDefault(); this.generateQRCode(); });
@@ -509,19 +629,31 @@ class QRGuardianGenerator {
         const downloadBtn = document.getElementById('downloadBtn');
         if (downloadBtn) downloadBtn.addEventListener('click', (e) => { e.preventDefault(); this.downloadQRCode(); });
 
-        // Initialiser le champ date d'expiration avec une valeur par défaut (aujourd'hui + 30 jours)
-        const expiryInput = document.getElementById('eventExpiry');
-        if (expiryInput) {
+        const startInput = document.getElementById('eventStart');
+        const endInput = document.getElementById('eventEnd');
+        if (startInput) {
             const today = new Date();
-            const defaultExpiry = new Date(today);
-            defaultExpiry.setDate(today.getDate() + 30);
-            const year = defaultExpiry.getFullYear();
-            const month = String(defaultExpiry.getMonth() + 1).padStart(2, '0');
-            const day = String(defaultExpiry.getDate()).padStart(2, '0');
-            expiryInput.value = `${year}-${month}-${day}`;
-            expiryInput.min = today.toISOString().split('T')[0]; // min aujourd'hui
-            expiryInput.addEventListener('input', () => this.updateFormPreview());
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            startInput.value = `${year}-${month}-${day}`;
+            startInput.min = today.toISOString().split('T')[0];
+            startInput.addEventListener('input', () => this.updateFormPreview());
         }
+        if (endInput) {
+            const today = new Date();
+            const defaultEnd = new Date(today);
+            defaultEnd.setDate(today.getDate() + 30);
+            const year = defaultEnd.getFullYear();
+            const month = String(defaultEnd.getMonth() + 1).padStart(2, '0');
+            const day = String(defaultEnd.getDate()).padStart(2, '0');
+            endInput.value = `${year}-${month}-${day}`;
+            endInput.min = today.toISOString().split('T')[0];
+            endInput.addEventListener('input', () => this.updateFormPreview());
+        }
+
+        const statusSelect = document.getElementById('eventStatus');
+        if (statusSelect) statusSelect.addEventListener('change', () => this.updateFormPreview());
 
         ['eventName', 'eventPrice', 'eventLocation'].forEach(id => {
             const input = document.getElementById(id);
@@ -556,6 +688,7 @@ class QRGuardianGenerator {
             fillElement.style.width = Math.min(percentage, 100) + '%';
             fillElement.className = 'char-fill' + (percentage > 90 ? ' danger' : percentage > 70 ? ' warning' : '');
         }
+        this.updateDataSizeIndicator();
     }
 
     createDataSizeIndicator() {
@@ -571,25 +704,18 @@ class QRGuardianGenerator {
     }
 
     updateDataSizeIndicator() {
-        const indicator = document.getElementById('dataSizeIndicator');
-        if (!indicator) return;
+        const indicator = document.getElementById('dataSize');
+        const globalFill = document.getElementById('globalSizeFill');
         const dataSize = this.calculateDataSize();
-        const percentage = (dataSize / this.maxDataSize) * 100;
-        let statusMessage = '<span class="size-ok"><i class="fas fa-check-circle"></i> Taille optimale</span>';
-        if (dataSize > this.maxDataSize) statusMessage = '<span class="size-warning"><i class="fas fa-exclamation-triangle"></i> Données trop volumineuses!</span>';
-        else if (percentage > 80) statusMessage = '<span class="size-alert"><i class="fas fa-info-circle"></i> Approche de la limite</span>';
-        indicator.innerHTML = `
-            <div class="size-indicator">
-                <i class="fas fa-database"></i>
-                <span>Taille des données: ${dataSize}/${this.maxDataSize} caractères</span>
-                <div class="size-bar"><div class="size-fill" style="width: ${Math.min(percentage, 100)}%"></div></div>
-                ${statusMessage}
-            </div>
-        `;
-        const generateBtn = document.getElementById('generateBtn');
-        if (generateBtn) generateBtn.disabled = dataSize > this.maxDataSize;
+        if (indicator) indicator.textContent = dataSize;
+        if (globalFill) {
+            const percentage = (dataSize / this.maxDataSize) * 100;
+            globalFill.style.width = Math.min(percentage, 100) + '%';
+        }
         const previewDataSize = document.getElementById('previewDataSize');
         if (previewDataSize) previewDataSize.textContent = dataSize;
+        const generateBtn = document.getElementById('generateBtn');
+        if (generateBtn) generateBtn.disabled = dataSize > this.maxDataSize;
     }
 
     calculateDataSize() {
@@ -598,29 +724,44 @@ class QRGuardianGenerator {
     }
 
     prepareEventData() {
-        const expiryInput = document.getElementById('eventExpiry');
-        let expiry = null;
-        if (expiryInput && expiryInput.value) {
-            // Convertir la date en timestamp (fin de journée)
-            const date = new Date(expiryInput.value);
+        const startInput = document.getElementById('eventStart');
+        const endInput = document.getElementById('eventEnd');
+        let start = null, end = null;
+        if (startInput && startInput.value) {
+            const date = new Date(startInput.value);
+            date.setHours(0, 0, 0, 0);
+            start = date.getTime();
+        }
+        if (endInput && endInput.value) {
+            const date = new Date(endInput.value);
             date.setHours(23, 59, 59, 999);
-            expiry = date.getTime();
+            end = date.getTime();
         }
         return {
             n: document.getElementById('eventName')?.value || '',
             p: document.getElementById('eventPrice')?.value || '',
             l: document.getElementById('eventLocation')?.value || '',
+            s: document.getElementById('eventStatus')?.value || 'Standard',
             ts: Date.now(),
             id: this.generateEventId(),
             sc: this.getSecurityCode(),
-            exp: expiry
+            start: start,
+            end: end
         };
     }
 
     generateEventId() {
-        const timestamp = Date.now().toString(36).slice(-6);
-        const random = Math.random().toString(36).substring(2, 4);
-        return `E${timestamp}${random}`.toUpperCase();
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const alphanum = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let part1 = '';
+        for (let i = 0; i < 3; i++) {
+            part1 += letters.charAt(Math.floor(Math.random() * letters.length));
+        }
+        let part2 = '';
+        for (let i = 0; i < 4; i++) {
+            part2 += alphanum.charAt(Math.floor(Math.random() * alphanum.length));
+        }
+        return `${part1}-${part2}`;
     }
 
     encodeToUrlParams(data) {
@@ -628,10 +769,12 @@ class QRGuardianGenerator {
         if (data.n) params.append('n', data.n.substring(0, 80));
         if (data.p) params.append('p', data.p.substring(0, 30));
         if (data.l) params.append('l', data.l.substring(0, 80));
+        if (data.s) params.append('s', data.s.substring(0, 10));
         if (data.ts) params.append('ts', data.ts);
         if (data.id) params.append('id', data.id);
         if (data.sc) params.append('sc', data.sc);
-        if (data.exp) params.append('exp', data.exp);
+        if (data.start) params.append('start', data.start);
+        if (data.end) params.append('end', data.end);
         return params.toString();
     }
 
@@ -639,11 +782,13 @@ class QRGuardianGenerator {
         const eventName = document.getElementById('eventName')?.value || 'Nom de l\'événement';
         const eventPrice = document.getElementById('eventPrice')?.value || 'Gratuit';
         const eventLocation = document.getElementById('eventLocation')?.value || 'Lieu non spécifié';
+        const eventStatus = document.getElementById('eventStatus')?.value || 'Standard';
         const securityCode = this.getSecurityCode() || 'CODE-ERR';
         const previewElements = {
             'previewEventName': eventName,
             'previewPrice': eventPrice,
             'previewLocation': eventLocation,
+            'previewStatus': eventStatus,
             'previewSecurityCode': securityCode.substring(0, 16) + '...'
         };
         for (const [id, value] of Object.entries(previewElements)) {
@@ -653,16 +798,15 @@ class QRGuardianGenerator {
         const previewId = document.getElementById('previewEventId');
         if (previewId) previewId.textContent = this.generateEventId();
 
-        // Afficher la date d'expiration
-        const previewExpiry = document.getElementById('previewExpiry');
-        if (previewExpiry) {
-            const expiryInput = document.getElementById('eventExpiry');
-            if (expiryInput && expiryInput.value) {
-                const date = new Date(expiryInput.value);
-                previewExpiry.textContent = date.toLocaleDateString();
-            } else {
-                previewExpiry.textContent = 'Jamais';
-            }
+        const startInput = document.getElementById('eventStart');
+        const endInput = document.getElementById('eventEnd');
+        const previewStart = document.getElementById('previewStart');
+        const previewEnd = document.getElementById('previewEnd');
+        if (previewStart) {
+            previewStart.textContent = startInput && startInput.value ? new Date(startInput.value).toLocaleDateString() : 'Non définie';
+        }
+        if (previewEnd) {
+            previewEnd.textContent = endInput && endInput.value ? new Date(endInput.value).toLocaleDateString() : 'Non définie';
         }
 
         const dataSizeElement = document.getElementById('dataSize');
@@ -724,13 +868,13 @@ class QRGuardianGenerator {
                 qrPreview.innerHTML = '';
                 const container = document.createElement('div');
                 container.style.textAlign = 'center';
-                container.style.padding = '20px';
+                container.style.padding = '10px';
                 if (typeof QRCode === 'undefined') throw new Error('QRCode non chargé');
                 new QRCode(container, {
                     text: data,
-                    width: 256,
-                    height: 256,
-                    colorDark: "#1e3a8a",
+                    width: 512,
+                    height: 512,
+                    colorDark: "#0a1a3a",
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.H
                 });
@@ -767,20 +911,30 @@ class QRGuardianGenerator {
     }
 
     clearForm() {
-        ['eventName', 'eventPrice', 'eventLocation', 'eventExpiry'].forEach(id => {
+        ['eventName', 'eventPrice', 'eventLocation', 'eventStatus', 'eventStart', 'eventEnd'].forEach(id => {
             const field = document.getElementById(id);
-            if (field) field.value = '';
+            if (field) {
+                if (id === 'eventStatus') field.value = 'Standard';
+                else field.value = '';
+            }
         });
-        // Réinitialiser la date d'expiration à la valeur par défaut
-        const expiryInput = document.getElementById('eventExpiry');
-        if (expiryInput) {
+        const startInput = document.getElementById('eventStart');
+        const endInput = document.getElementById('eventEnd');
+        if (startInput) {
             const today = new Date();
-            const defaultExpiry = new Date(today);
-            defaultExpiry.setDate(today.getDate() + 30);
-            const year = defaultExpiry.getFullYear();
-            const month = String(defaultExpiry.getMonth() + 1).padStart(2, '0');
-            const day = String(defaultExpiry.getDate()).padStart(2, '0');
-            expiryInput.value = `${year}-${month}-${day}`;
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            startInput.value = `${year}-${month}-${day}`;
+        }
+        if (endInput) {
+            const today = new Date();
+            const defaultEnd = new Date(today);
+            defaultEnd.setDate(today.getDate() + 30);
+            const year = defaultEnd.getFullYear();
+            const month = String(defaultEnd.getMonth() + 1).padStart(2, '0');
+            const day = String(defaultEnd.getDate()).padStart(2, '0');
+            endInput.value = `${year}-${month}-${day}`;
         }
         const qrPreview = document.getElementById('qrPreview');
         if (qrPreview) qrPreview.innerHTML = '<div class="qr-placeholder"><i class="fas fa-qrcode"></i><p>Le QR code apparaîtra ici</p></div>';
@@ -791,6 +945,7 @@ class QRGuardianGenerator {
         this.showNotification('Formulaire effacé', 'Tous les champs ont été réinitialisés.', 'success');
     }
 
+    // ===== GÉNÉRATION EN LOT =====
     initBulkGenerator() {
         try {
             if (typeof BulkQRGenerator === 'undefined') {
@@ -802,6 +957,7 @@ class QRGuardianGenerator {
 
             const generateBulkBtn = document.getElementById('generateBulkBtn');
             const downloadBulkBtn = document.getElementById('downloadBulkBtn');
+            const downloadBulkJpgBtn = document.getElementById('downloadBulkJpgBtn');
             const previewBulkBtn = document.getElementById('previewBulkBtn');
             const bulkQuantity = document.getElementById('bulkQuantity');
             const bulkQuantitySlider = document.getElementById('bulkQuantitySlider');
@@ -851,6 +1007,12 @@ class QRGuardianGenerator {
                     this.bulkGenerator.downloadBatchAsPDF();
                 });
             }
+            if (downloadBulkJpgBtn) {
+                downloadBulkJpgBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.bulkGenerator.downloadBatchAsJPGZip();
+                });
+            }
             if (previewBulkBtn) {
                 previewBulkBtn.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -870,6 +1032,7 @@ class QRGuardianGenerator {
         if (bulkTotalSize) bulkTotalSize.textContent = '~0.5 KB';
     }
 
+    // ===== PARAMÈTRES =====
     setupSettings() {
         const clearStorageBtn = document.getElementById('clearStorageBtn');
         if (clearStorageBtn) clearStorageBtn.addEventListener('click', () => this.clearStorage());
@@ -882,7 +1045,6 @@ class QRGuardianGenerator {
             });
         }
 
-        // Bouton Nouvel événement
         const newEventBtn = document.getElementById('newEventBtn');
         if (newEventBtn) {
             newEventBtn.addEventListener('click', () => this.generateNewSecurityCode());
@@ -906,14 +1068,11 @@ class QRGuardianGenerator {
             .catch(err => { console.error('Erreur de copie:', err); this.showNotification('Erreur', 'Impossible de copier le code secret.', 'error'); });
     }
 
-    // Nouvelle méthode pour masquer le code secret
     maskSecurityCode(code) {
         if (!code) return '---';
         if (code.length <= 8) {
-            // Si le code est court, on affiche des astérisques
             return '•'.repeat(code.length);
         }
-        // Afficher les 4 premiers et les 4 derniers caractères
         const first = code.substring(0, 4);
         const last = code.substring(code.length - 4);
         return first + '…' + last;
@@ -960,75 +1119,104 @@ class QRGuardianGenerator {
 
     async updateStorageUsage() {
         try {
+            let usedBytes = 0, quotaBytes = 5 * 1024 * 1024; // 5 MB par défaut
             if (navigator.storage && navigator.storage.estimate) {
                 const estimate = await navigator.storage.estimate();
-                const used = (estimate.usage / 1024).toFixed(2);
-                const quota = (estimate.quota / 1024 / 1024).toFixed(2);
-                const storageUsage = document.getElementById('storageUsage');
-                if (storageUsage) storageUsage.textContent = `${used} KB / ${quota} MB`;
-                const storageUsed = document.getElementById('storageUsed');
-                if (storageUsed) storageUsed.textContent = `${used} KB`;
-                const percentage = Math.min((estimate.usage / estimate.quota) * 100, 100);
-                const storageFill = document.getElementById('storageFill');
-                if (storageFill) {
-                    storageFill.style.width = `${percentage}%`;
-                    if (percentage > 80) storageFill.style.background = 'linear-gradient(135deg, var(--color-danger) 0%, #dc2626 100%)';
-                    else if (percentage > 60) storageFill.style.background = 'linear-gradient(135deg, var(--color-warning) 0%, #d97706 100%)';
-                    else storageFill.style.background = 'var(--gradient-primary)';
-                }
+                usedBytes = estimate.usage || 0;
+                quotaBytes = estimate.quota || (5 * 1024 * 1024);
             } else {
-                const fallback = this.calculateFallbackStorage();
-                const storageUsage = document.getElementById('storageUsage');
-                if (storageUsage) storageUsage.textContent = `${fallback.used} KB / ${fallback.total} MB`;
-                const storageUsed = document.getElementById('storageUsed');
-                if (storageUsed) storageUsed.textContent = `${fallback.used} KB`;
-                const percentage = Math.min((fallback.usedKB / (fallback.total * 1024)) * 100, 100);
-                const storageFill = document.getElementById('storageFill');
-                if (storageFill) storageFill.style.width = `${percentage}%`;
+                // fallback localStorage
+                let total = 0;
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    const value = localStorage.getItem(key);
+                    total += key.length + value.length;
+                }
+                usedBytes = total * 2; // approximation UTF-16
             }
-        } catch (error) {
-            console.error('Erreur mise à jour stockage:', error);
+
+            const used = this.formatBytes(usedBytes);
+            const quota = this.formatBytes(quotaBytes);
+            const percentage = (usedBytes / quotaBytes) * 100;
+
             const storageUsage = document.getElementById('storageUsage');
-            if (storageUsage) storageUsage.textContent = 'Calcul erreur';
             const storageUsed = document.getElementById('storageUsed');
-            if (storageUsed) storageUsed.textContent = '0 KB';
             const storageFill = document.getElementById('storageFill');
-            if (storageFill) storageFill.style.width = '0%';
+            if (storageUsage) storageUsage.textContent = `${used} / ${quota}`;
+            if (storageUsed) storageUsed.textContent = used;
+            if (storageFill) storageFill.style.width = Math.min(percentage, 100) + '%';
+        } catch (error) {
+            console.error('Erreur updateStorageUsage:', error);
         }
     }
 
-    calculateFallbackStorage() {
-        try {
-            let totalSize = 0;
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                const value = localStorage.getItem(key);
-                totalSize += (key.length + value.length) * 2;
-            }
-            if (this.UNIQUE_SECURITY_CODE) totalSize += this.UNIQUE_SECURITY_CODE.length * 2;
-            const usedKB = (totalSize / 1024).toFixed(2);
-            return { used: parseFloat(usedKB), usedKB: parseFloat(usedKB), total: 5 };
-        } catch (error) {
-            console.error('Erreur calcul stockage:', error);
-            return { used: 0, usedKB: 0, total: 5 };
-        }
+    formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
     async clearStorage() {
-        if (confirm('Êtes-vous sûr de vouloir effacer TOUTES les données locales ?\n\nCette action supprimera :\n• L\'historique des générations\n• Tous les paramètres\n\nLe code secret unique sera conservé.\n\nCette action est irréversible.')) {
-            try {
-                if (typeof Database !== 'undefined') await Database.clearAll();
-                localStorage.removeItem('qrguardian_security_code');
-                await this.loadOrCreateSecurityCode();
-                this.updateSettings();
-                this.showNotification('Stockage effacé', 'Toutes les données ont été supprimées. Nouveau code secret généré.', 'success');
-            } catch (error) {
-                console.error('❌ Erreur effacement stockage:', error);
-                this.showNotification('Erreur', 'Impossible d\'effacer les données.', 'error');
-            }
+        const confirmed = await this.showConfirmDialog(
+            'Nettoyer le stockage',
+            'Êtes-vous sûr de vouloir effacer TOUTES les données locales ?\n\nCette action supprimera :\n• L\'historique des générations\n• Tous les paramètres\n\nLe code secret unique sera conservé.\n\nCette action est irréversible.',
+            'Effacer',
+            'Annuler'
+        );
+        if (!confirmed) return;
+        try {
+            if (typeof Database !== 'undefined') await Database.clearAll();
+            localStorage.removeItem('qrguardian_security_code');
+            await this.loadOrCreateSecurityCode();
+            this.updateSettings();
+            this.showNotification('Stockage effacé', 'Toutes les données ont été supprimées. Nouveau code secret généré.', 'success');
+        } catch (error) {
+            console.error('❌ Erreur effacement stockage:', error);
+            this.showNotification('Erreur', 'Impossible d\'effacer les données.', 'error');
         }
     }
 
+    // ===== CONFIRMATION STYLISÉE =====
+    showConfirmDialog(title, message, confirmText = 'Confirmer', cancelText = 'Annuler') {
+        return new Promise((resolve) => {
+            const notif = document.createElement('div');
+            notif.className = 'notification confirm';
+            notif.innerHTML = `
+                <div class="notification-header">
+                    <i class="fas fa-question-circle"></i>
+                    <h4>${title}</h4>
+                </div>
+                <p>${message}</p>
+                <div class="confirm-actions">
+                    <button class="btn btn-secondary btn-sm" id="confirmCancelBtn">${cancelText}</button>
+                    <button class="btn btn-danger btn-sm" id="confirmOkBtn">${confirmText}</button>
+                </div>
+            `;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.classList.add('show'), 10);
+
+            const okBtn = notif.querySelector('#confirmOkBtn');
+            const cancelBtn = notif.querySelector('#confirmCancelBtn');
+
+            const cleanup = () => {
+                notif.classList.remove('show');
+                setTimeout(() => notif.remove(), 300);
+            };
+
+            okBtn.addEventListener('click', () => {
+                cleanup();
+                resolve(true);
+            });
+            cancelBtn.addEventListener('click', () => {
+                cleanup();
+                resolve(false);
+            });
+        });
+    }
+
+    // ===== NOTIFICATIONS =====
     showNotification(title, message, type = 'info') {
         try {
             const oldNotifications = document.querySelectorAll('.notification');
@@ -1051,6 +1239,7 @@ class QRGuardianGenerator {
         } catch (error) { console.error('Erreur notification:', error); }
     }
 
+    // ===== CONNEXION =====
     setupConnectionFeatures() {
         const generateConnectionQRBtn = document.getElementById('generateConnectionQRBtn');
         if (generateConnectionQRBtn) generateConnectionQRBtn.addEventListener('click', () => this.generateConnectionQR());
@@ -1063,11 +1252,10 @@ class QRGuardianGenerator {
 
     generateConnectionQR() {
         if (!this.UNIQUE_SECURITY_CODE) { this.showNotification('Erreur', 'Code secret non disponible.', 'error'); return; }
-        // Chiffrer le code secret avant de l'intégrer dans le QR
         const encryptedCode = this.encryptCode(this.UNIQUE_SECURITY_CODE);
         const connectionData = {
             type: "QRGUARDIAN_CONNECTION",
-            encrypted: true, // indicateur pour le terminal
+            encrypted: true,
             code: encryptedCode,
             timestamp: Date.now(),
             version: "1.0",
@@ -1122,6 +1310,7 @@ class QRGuardianGenerator {
     }
 }
 
+// Initialisation
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         try {
