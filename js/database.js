@@ -1,7 +1,7 @@
-// Gestion de la base de données IndexedDB - Générateur (version avec authentification)
+// Gestion de la base de donnÃ©es IndexedDB - GÃ©nÃ©rateur (version avec authentification)
 class Database {
     static DB_NAME = 'QRGuardianGeneratorDB';
-    static DB_VERSION = 6;
+    static DB_VERSION = 10;
     static STORES = {
         KEYS: 'keys',
         HISTORY: 'scanHistory',
@@ -86,7 +86,7 @@ class Database {
         });
     }
 
-    // ===== GESTION CENTRALISÉE DU CODE SECRET =====
+    // ===== GESTION CENTRALISÃ‰E DU CODE SECRET =====
     static async getSecurityCode() {
         const code = localStorage.getItem('qrguardian_security_code');
         if (code) {
@@ -108,11 +108,11 @@ class Database {
         try {
             await this.saveSetting('securityCode', code);
         } catch (e) {
-            console.warn(' Sauvegarde DB du code secret échouée, mais localStorage OK');
+            console.warn(' Sauvegarde DB du code secret Ã©chouÃ©e, mais localStorage OK');
         }
     }
 
-    // ===== GÉNÉRATIONS =====
+    // ===== GÃ‰NÃ‰RATIONS =====
     static async saveGeneration(genData) {
         try {
             const db = await this.init();
@@ -135,7 +135,29 @@ class Database {
         }
     }
 
-    // ===== PARAMÈTRES =====
+    // NOUVELLE MÃ‰THODE : rÃ©cupÃ©rer toutes les gÃ©nÃ©rations
+    static async getGenerations(limit = 0) {
+        try {
+            const db = await this.init();
+            const tx = db.transaction(this.STORES.GENERATIONS, 'readonly');
+            const store = tx.objectStore(this.STORES.GENERATIONS);
+            return new Promise((resolve, reject) => {
+                const request = store.getAll();
+                request.onsuccess = () => {
+                    let results = request.result;
+                    results.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    if (limit > 0) results = results.slice(0, limit);
+                    resolve(results);
+                };
+                request.onerror = () => reject(request.error);
+            });
+        } catch (error) {
+            console.error('Erreur getGenerations:', error);
+            return [];
+        }
+    }
+
+    // ===== PARAMÃˆTRES =====
     static async saveSetting(key, value) {
         try {
             const db = await this.init();
@@ -226,7 +248,7 @@ class Database {
         }
     }
 
-    // ===== STATISTIQUES (simplifiées pour le générateur) =====
+    // ===== STATISTIQUES (simplifiÃ©es pour le gÃ©nÃ©rateur) =====
     static async getSecurityStats() {
         try {
             const db = await this.init();
@@ -271,6 +293,27 @@ class Database {
         } catch (error) {
             console.error('Erreur saveBatch:', error);
             throw error;
+        }
+    }
+
+    static async getBatches(limit = 10) {
+        try {
+            const db = await this.init();
+            const tx = db.transaction(this.STORES.BATCHES, 'readonly');
+            const store = tx.objectStore(this.STORES.BATCHES);
+            return new Promise((resolve, reject) => {
+                const request = store.getAll();
+                request.onsuccess = () => {
+                    let results = request.result;
+                    results.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    if (limit > 0) results = results.slice(0, limit);
+                    resolve(results);
+                };
+                request.onerror = () => reject(request.error);
+            });
+        } catch (error) {
+            console.error('Erreur getBatches:', error);
+            return [];
         }
     }
 
