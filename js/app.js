@@ -872,8 +872,8 @@ class QRGuardianGenerator {
                 if (typeof QRCode === 'undefined') throw new Error('QRCode non chargé');
                 new QRCode(container, {
                     text: data,
-                    width: 512,
-                    height: 512,
+                    width: 256,
+                    height: 256,
                     colorDark: "#0a1a3a",
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.H
