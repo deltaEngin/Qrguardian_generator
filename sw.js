@@ -1,98 +1,138 @@
-const CACHE_NAME = 'qrguardian-generator-v1';
+const CACHE_NAME = 'qrguardian-generator-v2';
+
 const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
+  '/',
+  '/index.html',
+  '/manifest.json',
+
+  '/js/qrcode.min.js',
+  '/js/jspdf.umd.min.js',
+  '/js/database.js',
+  '/js/auth.js',
+  '/js/bulk-generator.js',
+  '/js/app.js',
+
+  // CDN
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
   'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap',
-  './js/qrcode.min.js',
-  './js/jspdf.umd.min.js',
-  './js/database.js',
-  './js/auth.js',
-  './js/bulk-generator.js',
-  './js/app.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
-  
-  // Icônes PWA
-  './icons/icon-72x72.png',
-  './icons/icon-96x96.png',
-  './icons/icon-128x128.png',
-  './icons/icon-144x144.png',
-  './icons/icon-152x152.png',
-  './icons/icon-192x192.png',
-  './icons/icon-384x384.png',
-  './icons/icon-512x512.png'
+
+  // icons
+  '/icons/icon-72x72.png',
+  '/icons/icon-96x96.png',
+  '/icons/icon-128x128.png',
+  '/icons/icon-144x144.png',
+  '/icons/icon-152x152.png',
+  '/icons/icon-192x192.png',
+  '/icons/icon-384x384.png',
+  '/icons/icon-512x512.png'
 ];
 
-// Installation : mise en cache atomique
+
+// INSTALL
 self.addEventListener('install', event => {
+
+  self.skipWaiting();
+
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Mise en cache des ressources du générateur');
-        return cache.addAll(urlsToCache);
-      })
-      .catch(error => {
-        console.error('Erreur lors du cache initial :', error);
-      })
+
+    caches.open(CACHE_NAME).then(async cache => {
+
+      for (const url of urlsToCache) {
+
+        try {
+
+          const response = await fetch(url, { mode: 'no-cors' });
+
+          await cache.put(url, response);
+
+        } catch (err) {
+
+          console.warn("Impossible de cacher :", url);
+
+        }
+
+      }
+
+    })
+
   );
+
 });
 
-// Interception des requêtes : stale-while-revalidate
+
+// FETCH
 self.addEventListener('fetch', event => {
-  // Ignorer les requêtes non-GET
-  if (event.request.method !== 'GET') {
-    return;
-  }
+
+  if (event.request.method !== 'GET') return;
 
   event.respondWith(
+
     caches.match(event.request)
-      .then(response => {
-        if (response) {
-          // Ressource en cache → servir immédiatement + mise à jour asynchrone
-          fetch(event.request)
-            .then(networkResponse => {
-              if (networkResponse && networkResponse.status === 200) {
-                caches.open(CACHE_NAME)
-                  .then(cache => cache.put(event.request, networkResponse));
-              }
-            })
-            .catch(() => {});
-          return response;
-        }
-        // Première visite → récupérer depuis le réseau et mettre en cache
-        return fetch(event.request)
+      .then(cached => {
+
+        const fetchPromise = fetch(event.request)
           .then(networkResponse => {
+
             if (networkResponse && networkResponse.status === 200) {
-              const responseToCache = networkResponse.clone();
+
+              const clone = networkResponse.clone();
+
               caches.open(CACHE_NAME)
-                .then(cache => cache.put(event.request, responseToCache));
+                .then(cache => cache.put(event.request, clone));
+
             }
+
             return networkResponse;
+
           })
-          .catch(() => {
-            // Optionnel : page hors ligne personnalisée
-            // return caches.match('/offline.html');
-          });
+          .catch(() => cached);
+
+        return cached || fetchPromise;
+
       })
+      .catch(() => {
+
+        if (event.request.mode === 'navigate') {
+
+          return caches.match('/index.html');
+
+        }
+
+      })
+
   );
+
 });
 
-// Activation : nettoyage des anciens caches
+
+// ACTIVATE
 self.addEventListener('activate', event => {
+
   event.waitUntil(
+
     caches.keys().then(cacheNames => {
+
       return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('🗑️ Suppression ancien cache:', cacheName);
-            return caches.delete(cacheName);
+
+        cacheNames.map(name => {
+
+          if (name !== CACHE_NAME) {
+
+            console.log("Suppression cache :", name);
+
+            return caches.delete(name);
+
           }
+
         })
+
       );
-    }).then(() => {
-      console.log('Service Worker activé, cache prêt');
-      return self.clients.claim();
+
     })
+
   );
+
+  return self.clients.claim();
+
 });
