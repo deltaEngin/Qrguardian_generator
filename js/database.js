@@ -1,4 +1,4 @@
-// Gestion de la base de données IndexedDB - Générateur (version avec authentification)
+// Gestion de la base de données IndexedDB - Générateur (sans authentification)
 class Database {
     static DB_NAME = 'QRGuardianGeneratorDB';
     static DB_VERSION = 10;
@@ -9,7 +9,7 @@ class Database {
         SETTINGS: 'settings',
         SECURITY_CODES: 'securityCodes',
         BATCHES: 'batches',
-        USERS: 'users'
+        USERS: 'users'  // conservé mais non utilisé
     };
 
     static async init() {
@@ -76,7 +76,7 @@ class Database {
                     batchesStore.createIndex('securityCode', 'securityCode', { unique: false });
                 }
 
-                // Store pour les utilisateurs
+                // Store pour les utilisateurs (conservé pour compatibilité)
                 if (!db.objectStoreNames.contains(this.STORES.USERS)) {
                     const usersStore = db.createObjectStore(this.STORES.USERS, { keyPath: 'id' });
                     usersStore.createIndex('name', 'name', { unique: false });
@@ -135,7 +135,6 @@ class Database {
         }
     }
 
-    // NOUVELLE MÉTHODE : récupérer toutes les générations
     static async getGenerations(limit = 0) {
         try {
             const db = await this.init();
@@ -187,64 +186,6 @@ class Database {
             });
         } catch {
             return null;
-        }
-    }
-
-    // ===== GESTION DES UTILISATEURS (AUTH) =====
-    static async saveUser(userData) {
-        try {
-            const db = await this.init();
-            const tx = db.transaction(this.STORES.USERS, 'readwrite');
-            const store = tx.objectStore(this.STORES.USERS);
-            
-            const user = {
-                id: 'current_user',
-                name: userData.name,
-                pin: userData.pin,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-
-            return new Promise((resolve, reject) => {
-                const request = store.put(user);
-                request.onsuccess = () => resolve(user);
-                request.onerror = () => reject(request.error);
-            });
-        } catch (error) {
-            console.error('Erreur saveUser:', error);
-            throw error;
-        }
-    }
-
-    static async getUser() {
-        try {
-            const db = await this.init();
-            const tx = db.transaction(this.STORES.USERS, 'readonly');
-            const store = tx.objectStore(this.STORES.USERS);
-            return new Promise((resolve, reject) => {
-                const request = store.get('current_user');
-                request.onsuccess = () => resolve(request.result || null);
-                request.onerror = () => reject(request.error);
-            });
-        } catch (error) {
-            console.error('Erreur getUser:', error);
-            return null;
-        }
-    }
-
-    static async deleteUser() {
-        try {
-            const db = await this.init();
-            const tx = db.transaction(this.STORES.USERS, 'readwrite');
-            const store = tx.objectStore(this.STORES.USERS);
-            return new Promise((resolve, reject) => {
-                const request = store.delete('current_user');
-                request.onsuccess = () => resolve();
-                request.onerror = () => reject(request.error);
-            });
-        } catch (error) {
-            console.error('Erreur deleteUser:', error);
-            throw error;
         }
     }
 
