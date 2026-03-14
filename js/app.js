@@ -1,4 +1,4 @@
-// QRGuardian Generator - Version complète avec authentification, statistiques, menu hamburger et jauges corrigées
+// QRGuardian Generator - Version complète sans authentification
 class QRGuardianGenerator {
     constructor() {
         this.currentPage = 'generatePage';
@@ -10,8 +10,6 @@ class QRGuardianGenerator {
         this.UNIQUE_SECURITY_CODE = null;
         this.bulkGenerator = null;
         this.isBatchGenerating = false;
-        this.auth = null;
-        this.pendingPage = null; // pour stocker la page à afficher après validation du PIN
     }
 
     // ===== INITIALISATION =====
@@ -41,30 +39,28 @@ class QRGuardianGenerator {
                 console.warn('Database non défini');
             }
 
-            // Vérification de AuthManager
-            if (typeof AuthManager === 'undefined') {
-                throw new Error('AuthManager est introuvable. Vérifiez que auth.js est bien chargé.');
-            }
+            // Charger ou créer le code secret
+            await this.loadOrCreateSecurityCode();
 
-            this.auth = new AuthManager();
-            const hasUser = await this.auth.hasUser();
-
-            if (hasUser) {
-                this.showLoginPage();
-            } else {
-                this.showSignupPage();
-            }
-
-            this.setupAuthEvents();
+            // Configurer l'interface
+            this.setupNavigation();
+            this.setupGenerateForm();
+            this.setupSettings();
+            this.setupRefreshButton();
             this.setupTheme();
-            this.setupPinModal();
             this.setupHamburger();
             this.setupStatsPage();
+            this.initBulkGenerator();
+            this.setupConnectionFeatures();
+
+            // Afficher la page générateur par défaut
+            this.switchPage('generatePage');
+            this.updateSettings();
+
+            this.showNotification('Générateur prêt', 'Créez vos QR codes sécurisés.', 'success');
 
         } catch (error) {
             console.error('❌ Erreur initialisation:', error);
-            // Afficher une notification même si showNotification n'est pas encore définie ? 
-            // On utilise un fallback
             if (typeof this.showNotification === 'function') {
                 this.showNotification('Erreur d\'initialisation', error.message, 'error');
             } else {
@@ -123,7 +119,6 @@ class QRGuardianGenerator {
     async loadStatistics(filter = 'all') {
         try {
             const generations = await Database.getGenerations(0); // toutes
-            const batches = await Database.getBatches(0);
             const now = new Date();
             const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
             const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay())).setHours(0,0,0,0);
@@ -139,14 +134,8 @@ class QRGuardianGenerator {
             }
 
             const total = filtered.length;
-            const used = filtered.filter(g => g.used).length;
-            const unused = total - used;
-            const totalBatches = batches.length;
 
             document.getElementById('statTotal').textContent = total;
-            document.getElementById('statUsed').textContent = used;
-            document.getElementById('statUnused').textContent = unused;
-            document.getElementById('statBatches').textContent = totalBatches;
 
             // Afficher les 10 dernières générations
             const list = document.getElementById('generationsList');
@@ -165,265 +154,6 @@ class QRGuardianGenerator {
         } catch (error) {
             console.error('Erreur chargement statistiques:', error);
         }
-    }
-
-    // ===== GESTION DE L'AUTHENTIFICATION =====
-    showLoginPage() {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.body.classList.remove('authenticated'); // cacher sidebar et menu
-
-        const loginPage = document.getElementById('loginPage');
-        if (loginPage) loginPage.classList.add('active');
-
-        const loginForm = document.getElementById('loginForm');
-        const signupForm = document.getElementById('signupForm');
-        if (loginForm) loginForm.style.display = 'block';
-        if (signupForm) signupForm.style.display = 'none';
-
-        setTimeout(() => {
-            const firstPin = document.querySelector('#loginForm .pin-digit');
-            if (firstPin) firstPin.focus();
-        }, 100);
-    }
-
-    showSignupPage() {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.body.classList.remove('authenticated');
-
-        const loginPage = document.getElementById('loginPage');
-        if (loginPage) loginPage.classList.add('active');
-
-        const loginForm = document.getElementById('loginForm');
-        const signupForm = document.getElementById('signupForm');
-        if (loginForm) loginForm.style.display = 'none';
-        if (signupForm) signupForm.style.display = 'block';
-
-        setTimeout(() => {
-            const nameInput = document.getElementById('signupName');
-            if (nameInput) nameInput.focus();
-        }, 100);
-    }
-
-    async onAuthenticated() {
-        const loginPage = document.getElementById('loginPage');
-        if (loginPage) loginPage.classList.remove('active');
-
-        // Ajouter la classe authenticated au body pour afficher la sidebar et le menu hamburger
-        document.body.classList.add('authenticated');
-
-        await this.loadOrCreateSecurityCode();
-
-        this.setupNavigation();
-        this.setupGenerateForm();
-        this.setupSettings();
-        this.setupRefreshButton();
-        this.initBulkGenerator();
-        this.setupConnectionFeatures();
-
-        this.switchPage('generatePage');
-        this.updateSettings();
-
-        this.showNotification('Authentification réussie', 'Bienvenue sur QRGuardian Generator.', 'success');
-    }
-
-    async logout() {
-        const confirmed = await this.showConfirmDialog(
-            'Déconnexion',
-            'Êtes-vous sûr de vouloir vous déconnecter ?',
-            'Déconnecter',
-            'Annuler'
-        );
-        if (!confirmed) return;
-
-        this.auth.logout();
-
-        document.body.classList.remove('authenticated');
-
-        this.bulkGenerator = null;
-        this.UNIQUE_SECURITY_CODE = null;
-
-        this.showLoginPage();
-        this.showNotification('Déconnexion réussie', 'À bientôt !', 'info');
-    }
-
-    setupAuthEvents() {
-        document.addEventListener('input', (e) => {
-            if (e.target.classList.contains('pin-digit')) {
-                const input = e.target;
-                if (input.value.length === 1) {
-                    const next = input.parentElement?.nextElementSibling?.querySelector('.pin-digit') ||
-                                 input.closest('.pin-inputs')?.children[
-                                     Array.from(input.parentElement.children).indexOf(input) + 1
-                                 ];
-                    if (next) next.focus();
-                }
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.target.classList.contains('pin-digit') && e.key === 'Backspace') {
-                const input = e.target;
-                if (input.value.length === 0) {
-                    const prev = input.parentElement?.previousElementSibling?.querySelector('.pin-digit') ||
-                                 input.closest('.pin-inputs')?.children[
-                                     Array.from(input.parentElement.children).indexOf(input) - 1
-                                 ];
-                    if (prev) {
-                        prev.focus();
-                        prev.value = '';
-                    }
-                }
-            }
-        });
-
-        const showSignupLink = document.getElementById('showSignupLink');
-        if (showSignupLink) {
-            showSignupLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showSignupPage();
-            });
-        }
-
-        const showLoginLink = document.getElementById('showLoginLink');
-        if (showLoginLink) {
-            showLoginLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showLoginPage();
-            });
-        }
-
-        const loginBtn = document.getElementById('loginBtn');
-        if (loginBtn) {
-            loginBtn.addEventListener('click', async () => {
-                const digits = document.querySelectorAll('#loginForm .pin-digit');
-                const pin = Array.from(digits).map(d => d.value).join('');
-
-                if (pin.length !== 4) {
-                    this.showNotification('Code incomplet', 'Veuillez saisir les 4 chiffres.', 'error');
-                    return;
-                }
-
-                const result = await this.auth.login(pin);
-                if (result.success) {
-                    this.onAuthenticated();
-                } else {
-                    this.showNotification('Erreur de connexion', result.message, 'error');
-                    digits.forEach(d => d.value = '');
-                    digits[0].focus();
-                }
-            });
-        }
-
-        const signupBtn = document.getElementById('signupBtn');
-        if (signupBtn) {
-            signupBtn.addEventListener('click', async () => {
-                const name = document.getElementById('signupName').value.trim();
-
-                const pinDigits = [
-                    document.getElementById('pin1'),
-                    document.getElementById('pin2'),
-                    document.getElementById('pin3'),
-                    document.getElementById('pin4')
-                ];
-                const confirmDigits = [
-                    document.getElementById('confirmPin1'),
-                    document.getElementById('confirmPin2'),
-                    document.getElementById('confirmPin3'),
-                    document.getElementById('confirmPin4')
-                ];
-
-                const pin = pinDigits.map(d => d.value).join('');
-                const confirmPin = confirmDigits.map(d => d.value).join('');
-
-                const result = await this.auth.register(name, pin, confirmPin);
-                if (result.success) {
-                    this.showNotification('Inscription réussie', 'Vous pouvez maintenant vous connecter avec votre code PIN.', 'success');
-                    this.showLoginPage();
-                    pinDigits.forEach(d => d.value = '');
-                    confirmDigits.forEach(d => d.value = '');
-                } else {
-                    this.showNotification('Erreur d\'inscription', result.message, 'error');
-                    pinDigits.forEach(d => d.value = '');
-                    confirmDigits.forEach(d => d.value = '');
-                    pinDigits[0].focus();
-                }
-            });
-        }
-    }
-
-    // ===== GESTION DU MODAL PIN POUR PARAMÈTRES =====
-    setupPinModal() {
-        const modal = document.getElementById('pinModal');
-        const cancelBtn = document.getElementById('cancelPinModal');
-        const confirmBtn = document.getElementById('confirmPinModal');
-        const inputs = document.querySelectorAll('#modalPinInputs .pin-digit');
-        const errorDiv = document.getElementById('pinModalError');
-
-        if (!modal || !cancelBtn || !confirmBtn || inputs.length === 0) {
-            console.warn('Modal PIN non trouvé');
-            return;
-        }
-
-        const closeModal = () => {
-            modal.classList.remove('show');
-            inputs.forEach(i => i.value = '');
-            errorDiv.classList.remove('show');
-            this.pendingPage = null;
-        };
-
-        cancelBtn.addEventListener('click', closeModal);
-
-        confirmBtn.addEventListener('click', async () => {
-            const pin = Array.from(inputs).map(i => i.value).join('');
-            if (pin.length !== 4) {
-                errorDiv.textContent = 'Code PIN incomplet';
-                errorDiv.classList.add('show');
-                return;
-            }
-
-            const result = await this.auth.login(pin);
-            if (result.success) {
-                const targetPage = this.pendingPage;
-                if (targetPage) {
-                    this.switchPage(targetPage);
-                }
-                closeModal();
-            } else {
-                errorDiv.textContent = 'Code PIN incorrect';
-                errorDiv.classList.add('show');
-                inputs.forEach(i => i.value = '');
-                inputs[0].focus();
-            }
-        });
-
-        inputs.forEach((input, index) => {
-            input.addEventListener('input', () => {
-                if (input.value.length === 1 && index < inputs.length - 1) {
-                    inputs[index + 1].focus();
-                }
-            });
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace' && input.value.length === 0 && index > 0) {
-                    inputs[index - 1].focus();
-                }
-            });
-        });
-
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeModal();
-            }
-        });
-    }
-
-    openPinModalForSettings() {
-        const modal = document.getElementById('pinModal');
-        const inputs = document.querySelectorAll('#modalPinInputs .pin-digit');
-        if (!modal) return;
-        inputs.forEach(i => i.value = '');
-        document.getElementById('pinModalError').classList.remove('show');
-        modal.classList.add('show');
-        inputs[0].focus();
     }
 
     // ===== THÈME =====
@@ -453,13 +183,7 @@ class QRGuardianGenerator {
         document.querySelectorAll('.nav-btn').forEach(button => {
             button.addEventListener('click', (e) => {
                 const pageId = e.currentTarget.getAttribute('data-page');
-                
-                if (pageId === 'settingsPage') {
-                    this.pendingPage = pageId;
-                    this.openPinModalForSettings();
-                } else {
-                    this.switchPage(pageId);
-                }
+                this.switchPage(pageId);
             });
         });
     }
@@ -659,7 +383,6 @@ class QRGuardianGenerator {
             const input = document.getElementById(id);
             if (input) input.addEventListener('input', () => { this.updateFormPreview(); this.updateDataSizeIndicator(); });
         });
-        this.createDataSizeIndicator();
         this.setupCharacterCounters();
     }
 
@@ -691,29 +414,15 @@ class QRGuardianGenerator {
         this.updateDataSizeIndicator();
     }
 
-    createDataSizeIndicator() {
-        let indicator = document.getElementById('dataSizeIndicator');
-        if (!indicator) {
-            indicator = document.createElement('div');
-            indicator.id = 'dataSizeIndicator';
-            indicator.className = 'data-size-indicator';
-            const formContainer = document.querySelector('.form-simple');
-            if (formContainer) formContainer.appendChild(indicator);
-        }
-        this.updateDataSizeIndicator();
-    }
-
     updateDataSizeIndicator() {
         const indicator = document.getElementById('dataSize');
-        const globalFill = document.getElementById('globalSizeFill');
+        const globalFill = document.getElementById('globalSizeFill'); // plus utilisé mais on le met à jour au cas où
         const dataSize = this.calculateDataSize();
         if (indicator) indicator.textContent = dataSize;
         if (globalFill) {
             const percentage = (dataSize / this.maxDataSize) * 100;
             globalFill.style.width = Math.min(percentage, 100) + '%';
         }
-        const previewDataSize = document.getElementById('previewDataSize');
-        if (previewDataSize) previewDataSize.textContent = dataSize;
         const generateBtn = document.getElementById('generateBtn');
         if (generateBtn) generateBtn.disabled = dataSize > this.maxDataSize;
     }
@@ -1037,14 +746,6 @@ class QRGuardianGenerator {
         const clearStorageBtn = document.getElementById('clearStorageBtn');
         if (clearStorageBtn) clearStorageBtn.addEventListener('click', () => this.clearStorage());
 
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.logout();
-            });
-        }
-
         const newEventBtn = document.getElementById('newEventBtn');
         if (newEventBtn) {
             newEventBtn.addEventListener('click', () => this.generateNewSecurityCode());
@@ -1101,19 +802,7 @@ class QRGuardianGenerator {
                 const stats = await Database.getSecurityStats();
                 totalGenerations = stats.totalCodes || 0;
             }
-            const securityCodeCount = document.getElementById('securityCodeCount');
-            if (securityCodeCount) securityCodeCount.textContent = `${totalGenerations} codes générés`;
-            const securityUsed = document.getElementById('securityUsed');
-            if (securityUsed) securityUsed.textContent = `0`;
-            const maxCapacity = 1000;
-            const percentage = Math.min((totalGenerations / maxCapacity) * 100, 100);
-            const securityFill = document.getElementById('securityFill');
-            if (securityFill) {
-                securityFill.style.width = `${percentage}%`;
-                if (percentage > 80) securityFill.style.background = 'linear-gradient(135deg, var(--color-warning) 0%, #d97706 100%)';
-                else if (percentage > 60) securityFill.style.background = 'linear-gradient(135deg, var(--color-info) 0%, #2563eb 100%)';
-                else securityFill.style.background = 'var(--gradient-primary)';
-            }
+            // Mise à jour éventuelle dans le UI, mais on a supprimé l'affichage
         } catch (error) { console.error('Erreur mise à jour compteur codes:', error); }
     }
 
@@ -1273,7 +962,7 @@ class QRGuardianGenerator {
         connectionQRCode.innerHTML = '';
         try {
             if (typeof QRCode !== 'undefined') {
-                new QRCode(connectionQRCode, { text: data, width: 200, height: 200, colorDark: "#1e3a8a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
+                new QRCode(connectionQRCode, { text: data, width: 200, height: 200, padding: 10, colorDark: "#0a1a3a", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
                 connectionQRContainer.style.display = 'block';
                 connectionQRCode.dataset.qrData = data;
             } else throw new Error('Bibliothèque QRCode non disponible');
@@ -1291,11 +980,22 @@ class QRGuardianGenerator {
         const canvas = connectionQRCode.querySelector('canvas');
         if (!canvas) { this.showNotification('Erreur', 'Aucun QR code à télécharger.', 'error'); return; }
         try {
+            // Créer un canvas avec fond blanc
+            const padding = 10;
+            const size = canvas.width + 2 * padding;
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = size;
+            finalCanvas.height = size;
+            const ctx = finalCanvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+            ctx.drawImage(canvas, padding, padding, canvas.width, canvas.height);
+            
             const link = document.createElement('a');
-            link.download = `QRGuardian_Connexion_${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
+            link.download = `QRGuardian_Connexion_${Date.now()}.jpg`;
+            link.href = finalCanvas.toDataURL('image/jpeg', 0.95);
             link.click();
-            this.showNotification('Téléchargement réussi', 'QR code de connexion téléchargé.', 'success');
+            this.showNotification('Téléchargement réussi', 'QR code de connexion téléchargé en JPG.', 'success');
         } catch (error) {
             console.error('❌ Erreur téléchargement QR connexion:', error);
             this.showNotification('Erreur', 'Impossible de télécharger le QR code.', 'error');
