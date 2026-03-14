@@ -10,7 +10,7 @@
     <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
     <link rel="manifest" href="./manifest.json">
     <title>QRGuardian - Générateur Professionnel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="./css/police.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* ===== VARIABLES ET RESET ===== */
@@ -294,23 +294,20 @@
             overflow-y: auto;
         }
 
-        /* Sidebar (desktop) */
+        /* Sidebar (desktop) - toujours visible */
         .sidebar-nav {
             width: 220px;
             background: var(--gradient-surface);
             border-right: 1px solid var(--color-border);
             border-radius: var(--radius-lg);
             padding: 1rem 0.5rem;
-            display: none;
+            display: flex;
             flex-direction: column;
             gap: 0.5rem;
             box-shadow: var(--shadow-md);
             height: fit-content;
             position: sticky;
             top: 90px;
-        }
-        body.authenticated .sidebar-nav {
-            display: flex;
         }
         .sidebar-nav .nav-btn {
             width: 100%;
@@ -361,6 +358,26 @@
             margin-bottom: 0.5rem;
         }
         .page-subtitle { color: var(--color-text-secondary); font-size: 0.875rem; }
+
+        /* Indicateur de taille compact */
+        .size-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--color-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--color-border);
+            font-size: 0.875rem;
+            color: var(--color-text);
+            margin-left: auto;
+        }
+        .size-badge i {
+            color: var(--color-primary-light);
+        }
+        .size-badge .badge-value {
+            font-weight: 600;
+        }
 
         /* Formulaire 3 colonnes */
         .form-grid {
@@ -423,42 +440,13 @@
         .char-fill.danger { background: var(--color-danger); }
         .char-count { font-weight: 600; min-width: 3rem; text-align: right; }
 
-        /* Indicateur taille et aperçu */
-        .qr-row {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
+        /* Suppression de l'ancien indicateur large */
         .data-size-indicator {
-            background: var(--color-surface);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            border: 1px solid var(--color-border);
-        }
-        .size-indicator { display: flex; align-items: center; gap: 1rem; }
-        .size-info { flex: 1; }
-        .size-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; }
-        .size-bar {
-            height: 8px;
-            background: var(--color-border);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 0.5rem;
-        }
-        .size-fill {
-            height: 100%;
-            background: var(--gradient-primary);
-            border-radius: 4px;
-        }
-        .size-message {
-            font-size: 0.75rem;
-            color: var(--color-text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            display: none; /* On le masque, on utilise le badge à la place */
         }
 
+        /* Aperçu QR */
+        
         .qr-preview-container {
             background: var(--color-surface);
             border-radius: var(--radius-xl);
@@ -589,7 +577,7 @@
             border: 1px solid var(--color-border);
         }
 
-        /* STATISTIQUES */
+        /* STATISTIQUES simplifiées */
         .stats-filters {
             display: flex;
             gap: 1rem;
@@ -610,7 +598,7 @@
         }
         .stats-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+            grid-template-columns: 1fr; /* Une seule carte */
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -811,209 +799,6 @@
         .notification-header h4 { font-size: 0.875rem; font-weight: 600; }
         .notification p { font-size: 0.75rem; color: var(--color-text-secondary); }
 
-        /* ===== PAGE LOGIN AMÉLIORÉE ===== */
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 80vh;
-            padding: 1rem;
-        }
-        .login-card {
-            background: var(--color-surface);
-            border-radius: var(--radius-xl);
-            padding: 2rem;
-            border: 1px solid var(--color-border);
-            box-shadow: var(--shadow-lg);
-            max-width: 450px;
-            width: 100%;
-        }
-        .login-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .login-logo {
-            font-size: 3rem;
-            color: var(--color-primary-light);
-            margin-bottom: 0.5rem;
-        }
-        .login-header h2 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--color-text);
-        }
-        .login-subtitle {
-            color: var(--color-text-secondary);
-            font-size: 0.9rem;
-        }
-        .login-form h3 {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.2rem;
-            margin-bottom: 1.5rem;
-            color: var(--color-text);
-        }
-        .pin-container {
-            margin-bottom: 1.5rem;
-        }
-        .pin-container label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--color-text-secondary);
-            font-size: 0.9rem;
-        }
-        .pin-inputs {
-            display: flex;
-            gap: 0.75rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .pin-digit {
-            width: 3.5rem;
-            height: 3.5rem;
-            text-align: center;
-            font-size: 1.8rem;
-            font-weight: 600;
-            background: var(--color-secondary);
-            border: 2px solid var(--color-border);
-            border-radius: var(--radius-md);
-            color: var(--color-text);
-        }
-        .pin-digit:focus {
-            border-color: var(--color-primary-light);
-            outline: none;
-        }
-        .toggle-form {
-            margin-top: 1.5rem;
-            text-align: center;
-            color: var(--color-text-secondary);
-        }
-        .toggle-form a {
-            color: var(--color-primary-light);
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .toggle-form a:hover {
-            text-decoration: underline;
-        }
-        /* Code de secours */
-        .backup-code-container {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background: rgba(59,130,246,0.1);
-            border-radius: var(--radius-md);
-            border: 1px solid rgba(59,130,246,0.2);
-        }
-        .backup-code-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--color-primary-light);
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-        }
-        .backup-code-field {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-        .backup-code-input {
-            flex: 1;
-            background: var(--color-secondary);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-md);
-            padding: 0.5rem 1rem;
-            color: var(--color-text);
-            font-family: monospace;
-            font-size: 1rem;
-            letter-spacing: 2px;
-            -webkit-text-security: disc;
-            text-security: disc;
-        }
-        .backup-code-input:focus {
-            outline: none;
-            border-color: var(--color-primary-light);
-        }
-        .backup-copy-btn {
-            padding: 0.5rem 1rem;
-            background: var(--color-secondary);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-md);
-            color: var(--color-text);
-            cursor: pointer;
-        }
-        .backup-copy-btn:hover {
-            background: var(--color-primary-light);
-            color: white;
-        }
-
-        /* MODAL PIN */
-        .pin-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(5px);
-        }
-        .pin-modal.show {
-            display: flex;
-        }
-        .pin-modal-content {
-            background: var(--color-surface);
-            border-radius: var(--radius-xl);
-            padding: 2rem;
-            max-width: 400px;
-            width: 90%;
-            border: 1px solid var(--color-border);
-            box-shadow: var(--shadow-lg);
-        }
-        .pin-modal-header {
-            text-align: center;
-            margin-bottom: 1.5rem;
-        }
-        .pin-modal-header h3 {
-            font-size: 1.5rem;
-            color: var(--color-text);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        .pin-modal-header i {
-            color: var(--color-primary-light);
-        }
-        .pin-modal-header p {
-            color: var(--color-text-secondary);
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-        }
-        .pin-modal-actions {
-            display: flex;
-            gap: 1rem;
-        }
-        .pin-modal-actions .btn {
-            flex: 1;
-        }
-        .pin-modal-error {
-            color: var(--color-danger);
-            font-size: 0.8rem;
-            text-align: center;
-            margin-top: 1rem;
-            display: none;
-        }
-        .pin-modal-error.show {
-            display: block;
-        }
-
         /* Ajustements pour petits écrans */
         @media (max-width: 768px) {
             .form-grid {
@@ -1025,28 +810,21 @@
             .bulk-desktop-row {
                 grid-template-columns: 1fr;
             }
-            .pin-digit {
-                width: 3rem;
-                height: 3rem;
-                font-size: 1.5rem;
-            }
             .settings-grid {
                 grid-template-columns: 1fr;
             }
+            .size-badge {
+                margin-left: 0;
+                width: 100%;
+                justify-content: center;
+            }
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
         }
 
-        /* Responsive pour la sidebar */
-        @media (min-width: 993px) {
-            .hamburger-btn {
-                display: none;
-            }
-            .sidebar-nav {
-                display: none;
-            }
-            body.authenticated .sidebar-nav {
-                display: flex;
-            }
-        }
         @media (max-width: 992px) {
             .sidebar-nav {
                 display: none !important;
@@ -1090,12 +868,7 @@
     <div class="app-container">
         <header class="app-header">
             <div class="header-content">
-                <div class="logo-container">                 
-                    <div class="logo-text">
-                        <h1 class="app-title">QRGuardian</h1>
-                        <span class="app-subtitle">Générateur Professionnel</span>
-                    </div>
-                </div>
+                
                 <div class="header-actions">
                     <button class="hamburger-btn" id="hamburgerBtn" aria-label="Menu">
                         <i class="fas fa-bars"></i>
@@ -1106,6 +879,12 @@
                     <button id="themeToggle" class="theme-toggle" aria-label="Changer de thème">
                         <i class="fas fa-moon"></i>
                     </button>
+                </div>
+                <div class="logo-container">                 
+                    <div class="logo-text">
+                        <h1 class="app-title">QRGuardian</h1>
+                        
+                    </div>
                 </div>
             </div>
         </header>
@@ -1148,84 +927,17 @@
 
             <!-- Contenu principal -->
             <main class="main-content">
-                <!-- PAGE LOGIN / SIGNUP -->
-                <section class="page active" id="loginPage">
-                    <div class="login-container">
-                        <div class="login-card">
-                            <div class="login-header">
-                                <i class="fas fa-ticket-alt login-logo"></i>
-                                <h2>QRGuardian Generator</h2>
-                                <p class="login-subtitle">Accès sécurisé</p>
-                            </div>
-                            <div id="loginForm" class="login-form">
-                                <h3 class="connexion"><i class="fas fa-lock"></i> Connexion</h3>
-                                <div class="pin-container">
-                                    <label>Code PIN à 4 chiffres</label>
-                                    <div class="pin-inputs">
-                                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]" autofocus>
-                                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
-                                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
-                                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
-                                    </div>
-                                </div>
-                                <button class="btn btn-primary" id="loginBtn">Se connecter</button>
-                                <p class="toggle-form">
-                                    Pas encore de compte ?
-                                    <a href="#" id="showSignupLink">Créer un compte</a>
-                                </p>
-                                <div class="backup-code-container" id="backupCodeContainer" style="display: none;">
-                                    <div class="backup-code-header">
-                                        <i class="fas fa-key"></i>
-                                        <span>Code de secours (conserve-le précieusement)</span>
-                                    </div>
-                                    <div class="backup-code-field">
-                                        <input type="text" id="backupCodeInput" class="backup-code-input" readonly value="••••">
-                                        <button id="copyBackupCodeBtn" class="backup-copy-btn" title="Copier le code">
-                                            <i class="fas fa-copy"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="signupForm" class="login-form" style="display: none;">
-                                <h3><i class="fas fa-user-plus"></i> Inscription</h3>
-                                <div class="input-group">
-                                    <label for="signupName">Nom complet</label>
-                                    <input type="text" id="signupName" class="input-field" placeholder="Ex: Jean Dupont" required>
-                                </div>
-                                <div class="pin-container">
-                                    <label>Code PIN (4 chiffres)</label>
-                                    <div class="pin-inputs">
-                                        <input type="password" maxlength="1" class="pin-digit" id="pin1" inputmode="numeric" pattern="[0-9]">
-                                        <input type="password" maxlength="1" class="pin-digit" id="pin2" inputmode="numeric" pattern="[0-9]">
-                                        <input type="password" maxlength="1" class="pin-digit" id="pin3" inputmode="numeric" pattern="[0-9]">
-                                        <input type="password" maxlength="1" class="pin-digit" id="pin4" inputmode="numeric" pattern="[0-9]">
-                                    </div>
-                                </div>
-                                <div class="pin-container">
-                                    <label>Confirmer le code PIN</label>
-                                    <div class="pin-inputs">
-                                        <input type="password" maxlength="1" class="pin-digit" id="confirmPin1" inputmode="numeric" pattern="[0-9]">
-                                        <input type="password" maxlength="1" class="pin-digit" id="confirmPin2" inputmode="numeric" pattern="[0-9]">
-                                        <input type="password" maxlength="1" class="pin-digit" id="confirmPin3" inputmode="numeric" pattern="[0-9]">
-                                        <input type="password" maxlength="1" class="pin-digit" id="confirmPin4" inputmode="numeric" pattern="[0-9]">
-                                    </div>
-                                </div>
-                                <button class="btn btn-primary" id="signupBtn">S'inscrire</button>
-                                <p class="toggle-form">
-                                    Déjà un compte ?
-                                    <a href="#" id="showLoginLink">Se connecter</a>
-                                </p>
-                            </div>
+                <!-- PAGE GÉNÉRER (active par défaut) -->
+                <section class="page active" id="generatePage">
+                    <div class="page-header" style="display: flex; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <h2 class="page-title" style="margin-bottom: 0;"><i class="fas fa-qrcode" style="color: var(--color-primary-light);"></i> Générer QR Code</h2>
+                        <!-- Indicateur de taille compact -->
+                        <div class="size-badge">
+                            <i class="fas fa-database"></i>
+                            <span>Taille: <span id="dataSize" class="badge-value">0</span>/500</span>
                         </div>
                     </div>
-                </section>
-
-                <!-- PAGE GÉNÉRER -->
-                <section class="page" id="generatePage">
-                    <div class="page-header">
-                        <h2 class="page-title"><i class="fas fa-qrcode"></i> Générer QR Code</h2>
-                        <p class="page-subtitle">Créez un QR code sécurisé avec code secret unique</p>
-                    </div>
+                    
                     <div class="form-simple">
                         <!-- Grille 3 colonnes -->
                         <div class="form-grid">
@@ -1243,7 +955,7 @@
                             </div>
                             <!-- Lieu -->
                             <div class="input-group">
-                                <label for="eventLocation" class="input-label"><i class="fas fa-map-marker-alt"></i> Lieu *</label>
+                                <label for="eventLocation" class="input-label"><i class="fas fa-map-marker-alt" style="color: green;"></i> Lieu *</label>
                                 <input type="text" id="eventLocation" class="input-field" placeholder="Ex: Stade de France" maxlength="80" required>
                                 <div class="input-hint">
                                     <span>Max 80</span>
@@ -1255,7 +967,7 @@
                             </div>
                             <!-- Prix -->
                             <div class="input-group">
-                                <label for="eventPrice" class="input-label"><i class="fas fa-tag"></i> Prix</label>
+                                <label for="eventPrice" class="input-label"><i class="fas fa-tag" style="color: var(--color-primary-light);"></i> Prix</label>
                                 <input type="text" id="eventPrice" class="input-field" placeholder="Ex: Gratuit, 50€" maxlength="30">
                                 <div class="input-hint">
                                     <span>Max 30</span>
@@ -1267,7 +979,7 @@
                             </div>
                             <!-- Statut -->
                             <div class="input-group">
-                                <label for="eventStatus" class="input-label"><i class="fas fa-star"></i> Statut</label>
+                                <label for="eventStatus" class="input-label"><i class="fas fa-star" style="color: orange;"></i> Statut</label>
                                 <select id="eventStatus" class="input-field">
                                     <option value="Standard">Standard</option>
                                     <option value="VIP">VIP</option>
@@ -1288,27 +1000,11 @@
                             </div>
                         </div>
 
-                        <!-- Indicateur taille + aperçu -->
+                        <!-- Aperçu -->
                         <div class="qr-row">
-                            <div class="data-size-indicator">
-                                <div class="size-indicator">
-                                    <i class="fas fa-database fa-lg" style="color: var(--color-primary-light);"></i>
-                                    <div class="size-info">
-                                        <div class="size-header">
-                                            <span>Taille totale</span>
-                                            <strong id="dataSize">0</strong>/500 caractères
-                                        </div>
-                                        <div class="size-bar"><div class="size-fill" id="globalSizeFill"></div></div>
-                                        <div class="size-message">
-                                            <i class="fas fa-info-circle"></i>
-                                            <span>Taille optimale pour scan rapide</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                             <div class="qr-preview-container">
                                 <div class="qr-preview-header">
-                                    <h3 class="qr-preview-title"><i class="fas fa-eye"></i> Aperçu</h3>
+                                    <h3 class="qr-preview-title"><i class="fas fa-eye" style="color: orange;"></i> Aperçu</h3>
                                     <div class="security-code-display" id="previewSecurityCode">Code: <span style="font-weight: bold; color: var(--color-primary-light);">---</span></div>
                                 </div>
                                 <div class="qr-code-display" id="qrPreview">
@@ -1326,7 +1022,7 @@
                                         <div class="qr-info-item"><span class="qr-info-label">Début</span><span class="qr-info-value" id="previewStart">---</span></div>
                                         <div class="qr-info-item"><span class="qr-info-label">Fin</span><span class="qr-info-value" id="previewEnd">---</span></div>
                                     </div>
-                                    <small>ID: <span id="previewEventId" style="color: var(--color-primary-light);">---</span> | Taille: <span id="previewDataSize">0</span> caractères</small>
+                                    <small>ID: <span id="previewEventId" style="color: var(--color-primary-light);">---</span></small>
                                 </div>
                             </div>
                         </div>
@@ -1359,12 +1055,12 @@
                                 </div>
                                 <div class="bulk-stats">
                                     <div class="bulk-stat-card">
-                                        <i class="fas fa-qrcode"></i>
+                                        <i class="fas fa-qrcode" style="color: var(--color-primary-light);"></i>
                                         <div style="font-weight:600; color:var(--color-text);" id="bulkCount">1</div>
                                         <div style="font-size:0.75rem; color:var(--color-text-secondary);">QR à générer</div>
                                     </div>
                                     <div class="bulk-stat-card">
-                                        <i class="fas fa-shield-alt"></i>
+                                        <i class="fas fa-shield-alt" style="color: green;"></i>
                                         <div style="font-weight:600; color:var(--color-text);">Sécurisés</div>
                                         <div style="font-size:0.75rem; color:var(--color-text-secondary);">Code unique</div>
                                     </div>
@@ -1392,7 +1088,7 @@
                 <section class="page" id="statsPage">
                     <div class="page-header">
                         <h2 class="page-title"><i class="fas fa-chart-bar"></i> Statistiques de génération</h2>
-                        <p class="page-subtitle">Analysez l'utilisation de vos QR codes</p>
+                        <p class="page-subtitle">Suivi des QR codes générés</p>
                     </div>
                     <div class="stats-filters">
                         <button class="filter-btn active" data-filter="today">Aujourd'hui</button>
@@ -1403,19 +1099,7 @@
                     <div class="stats-cards">
                         <div class="stat-card">
                             <div class="stat-value" id="statTotal">0</div>
-                            <div class="stat-label">QR générés</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" id="statUsed">0</div>
-                            <div class="stat-label">Utilisés (scannés)</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" id="statUnused">0</div>
-                            <div class="stat-label">Non utilisés</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" id="statBatches">0</div>
-                            <div class="stat-label">Lots générés</div>
+                            <div class="stat-label">QR codes générés</div>
                         </div>
                     </div>
                     <h3 style="margin: 2rem 0 1rem;">Dernières générations</h3>
@@ -1486,9 +1170,7 @@
                                 <button class="btn btn-danger" id="clearStorageBtn" style="width:100%; margin-top:0.5rem;">
                                     <i class="fas fa-trash"></i> Nettoyer le stockage
                                 </button>
-                                <button class="btn btn-secondary" id="logoutBtn" style="width:100%; margin-top:1rem;">
-                                    <i class="fas fa-sign-out-alt"></i> Déconnexion
-                                </button>
+                                <!-- Le bouton de déconnexion n'est plus nécessaire -->
                             </div>
                         </div>
 
@@ -1535,7 +1217,7 @@
                                         </div>
                                         <div class="connection-actions">
                                             <button class="btn btn-secondary" id="closeConnectionQRBtn"><i class="fas fa-times"></i> Fermer</button>
-                                            <button class="btn btn-primary" id="downloadConnectionQRBtn"><i class="fas fa-download"></i> Télécharger</button>
+                                            <button class="btn btn-primary" id="downloadConnectionQRBtn"><i class="fas fa-download"></i> Télécharger JPG</button>
                                         </div>
                                     </div>
                                 </div>
@@ -1545,29 +1227,6 @@
                 </section>
             </main>
         </div>
-
-        <!-- MODAL DE VÉRIFICATION PIN -->
-        <div class="pin-modal" id="pinModal">
-            <div class="pin-modal-content">
-                <div class="pin-modal-header">
-                    <h3><i class="fas fa-lock"></i> Accès sécurisé</h3>
-                    <p>Veuillez saisir votre code PIN pour accéder aux paramètres</p>
-                </div>
-                <div class="pin-container">
-                    <div class="pin-inputs" id="modalPinInputs">
-                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]" autofocus>
-                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
-                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
-                        <input type="password" maxlength="1" class="pin-digit" inputmode="numeric" pattern="[0-9]">
-                    </div>
-                </div>
-                <div class="pin-modal-actions">
-                    <button class="btn btn-secondary" id="cancelPinModal">Annuler</button>
-                    <button class="btn btn-primary" id="confirmPinModal">Valider</button>
-                </div>
-                <div class="pin-modal-error" id="pinModalError">Code PIN incorrect</div>
-            </div>
-        </div>
     </div>
 
     <!-- Scripts -->
@@ -1575,7 +1234,6 @@
     <script src="./js/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="./js/database.js"></script>
-    <script src="./js/auth.js"></script>
     <script src="./js/bulk-generator.js"></script>
     <script src="./js/app.js"></script>
     <script>
@@ -1598,27 +1256,6 @@
                 overlay.addEventListener('click', () => {
                     sideMenu.classList.remove('open');
                     overlay.classList.remove('show');
-                });
-            }
-
-            // Copie du code de secours
-            const copyBtn = document.getElementById('copyBackupCodeBtn');
-            if (copyBtn) {
-                copyBtn.addEventListener('click', () => {
-                    const input = document.getElementById('backupCodeInput');
-                    if (input) {
-                        navigator.clipboard.writeText(input.value).then(() => {
-                            const notif = document.createElement('div');
-                            notif.className = 'notification success';
-                            notif.innerHTML = '<div class="notification-header"><i class="fas fa-check-circle"></i><h4>Code copié</h4></div><p>Le code de secours a été copié.</p>';
-                            document.body.appendChild(notif);
-                            setTimeout(() => notif.classList.add('show'), 10);
-                            setTimeout(() => {
-                                notif.classList.remove('show');
-                                setTimeout(() => notif.remove(), 300);
-                            }, 3000);
-                        });
-                    }
                 });
             }
         });
