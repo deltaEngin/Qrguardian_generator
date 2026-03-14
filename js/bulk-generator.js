@@ -138,7 +138,7 @@ class BulkQRGenerator {
                     const canvas = tempDiv.querySelector('canvas');
                     if (canvas) {
                         // Créer un nouveau canvas avec fond blanc et padding
-                        const padding = 8; // padding autour du QR
+                        const padding = 10; // padding autour du QR
                         const finalSize = size + 2 * padding;
                         const finalCanvas = document.createElement('canvas');
                         finalCanvas.width = finalSize;
